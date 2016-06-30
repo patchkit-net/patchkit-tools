@@ -1,0 +1,3 @@
+[submodule "src/qt-installer-framework"]
+	path = src/qt-installer-framework
+	url = http://code.qt.io/cgit/installer-framework/installer-framework.git/
