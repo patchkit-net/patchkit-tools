@@ -123,13 +123,13 @@ File.open(options.file) do |file|
       ]
   end
 
-  PatchKitAPI.get_resource_response(resource_name, resource_form, Net::HTTP::Put, lambda do |request|
+  PatchKitAPI.get_resource_object(resource_name, resource_form, Net::HTTP::Put, lambda do |request|
     progressBar = ProgressBar.create
 
     Net::HTTP::UploadProgress.new(request) do |progress|
       progressBar.progress = [[(progress.upload_size.to_f / file.size) * 100.0,100].min, 0].max
     end
-  end) do |response|
-    puts response.body
+  end) do |object|
+    PatchKitAPI.display_job_progress(object["job_guid"])
   end
 end
