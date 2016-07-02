@@ -66,29 +66,17 @@ end
 
 latest_version = PatchKitAPI.get_resource_object("1/apps/#{options.secret}/versions/latest")["id"]
 
-resource_name = "1/apps/#{options.secret}/versions/#{latest_version}/signatures"
-resource_url = PatchKitAPI.get_resource_uri(resource_name)
+PatchKitAPI.get_resource_response("1/apps/#{options.secret}/versions/#{latest_version}/signatures?api_key=#{options.api_key}") do |response|
+  File.open(options.output, 'w') do |file|
+    progressBar = ProgressBar.create
 
-Net::HTTP.start(resource_url.host, resource_url.port) do |http|
-	request = Net::HTTP::Get.new resource_url.path
-	request.set_form_data({"api_key" => options.api_key})
+    progressBar.total = response.content_length
 
-	http.request(request) do |response|
-    if response.kind_of?(Net::HTTPSuccess)
-    	File.open(options.output, 'w') do |file|
-        progressBar = ProgressBar.create
-
-        progressBar.total = response.content_length
-
-        response.read_body do |segment|
-          file.write segment
-          progressBar.progress += segment.length
-        end
-
-        puts ""
-      end
-    else
-    	raise "[#{response.code}] #{response.msg}"
+    response.read_body do |segment|
+      file.write segment
+      progressBar.progress += segment.length
     end
+
+    puts ""
   end
 end

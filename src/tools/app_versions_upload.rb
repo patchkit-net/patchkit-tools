@@ -39,15 +39,15 @@ opt_parser = OptionParser.new do |opts|
 		options.file = file
 	end
 
-	opts.on("-l", "--label LABEL",
-		"version label") do |label|
-		options.label = label
-	end
-
 	opts.on("-c", "--changelog [CHANGELOG]",
 		"version changelog") do |changelog|
 		options.changelog = changelog
 	end
+
+  opts.on("-d", "-diffsummary [DIFF_SUMMARY]",
+    "diff summary (required when --type diff)") do |diff_summary|
+      options.diff_summary = diff_summary
+  end
 
 	opts.separator ""
 	opts.separator "Common options:"
@@ -74,13 +74,6 @@ if options.api_key.nil?
 	exit
 end
 
-if options.label.nil?
-	puts "ERROR: Missing argument value --label LABEL"
-	puts ""
-	puts opt_parser.help
-	exit
-end
-
 if options.type.nil?
 	puts "ERROR: Missing argument value --type TYPE"
 	puts ""
@@ -102,32 +95,41 @@ if options.file.nil?
 	exit
 end
 
-resource_name = "/1/apps/#{options.secret}/versions"
+if options.type == "diff" && options.diff_summary.nil?
+  puts "ERROR: Missing argument value --diffsummary DIFF_SUMMARY"
+	puts ""
+	puts opt_parser.help
+	exit
+end
 
-resource_url = PatchKitAPI.get_resource_uri(resource_name)
+latest_version = PatchKitAPI.get_resource_object("/1/apps/#{options.secret}/latest")["id"]
 
 File.open(options.file) do |file|
-	response = Net::HTTP.start(resource_url.host, resource_url.port) do |http|
-		request = Net::HTTP::Post.new resource_url.path
-		request.set_form_data({"api_key" => options.api_key})
-		request.set_form({
-			"#{options.type}_file" => file,
-			"label" => options.label
-			}, "multipart/form-data")
+  resource_name, resource_form = case options.type
+  when "content"
+      [
+        "/1/apps/#{options.secret}/versions/#{latest_version}/content_file?api_key=#{options.api_key}",
+        {
+          "file" => file
+        }
+      ]
+    when "content"
+      [
+        "/1/apps/#{options.secret}/versions/#{latest_version}/diff_file?api_key=#{options.api_key}",
+        {
+          "file" => file,
+          "diff_summary" => options.diff_summary
+        }
+      ]
+  end
 
-
-		progressBar = ProgressBar.create
+  PatchKitAPI.get_resource_response(resource_name, resource_form) do |response|
+    progressBar = ProgressBar.create
 
 		Net::HTTP::UploadProgress.new(request) do |progress|
 			progressBar.progress = [[(progress.upload_size.to_f / file.size) * 100.0,100].min, 0].max
 		end
 
-		http.request(request)
-	end
-
-	if response.kind_of?(Net::HTTPSuccess)
-		puts response.body
-	else
-		raise "[#{response.code}] #{response.msg}"
-	end
+    puts response.body
+  end
 end

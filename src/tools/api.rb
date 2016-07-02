@@ -12,31 +12,32 @@ module PatchKitAPI
 		return URI.parse("#{API_URL}/#{resource_name}")
 	end
 
-	def self.get_resource_response(resource_name)
+  def self.get_resource_response(resource_name, resource_form = nil, resource_method = Net::HTTP::Get)
 		url = get_resource_uri(resource_name)
 
 		Net::HTTP.start(url.host, url.port) do |http|
-			request = Net::HTTP::Get.new(url)
+			request = resource_method.new(url)
+      request.set_form(resource_form) if not resource_form.nil?
 
-			response = http.request(request)
+			http.request(request) do |response|
+        if response.kind_of?(Net::HTTPSuccess)
+          if block_given?
+            yield response
+          else
+            response
+          end
+        else
+          raise "[#{response.code}] #{response.msg}"
+        end
+      end
+    end
+  end
 
-			return response
-		end
+	def self.get_resource_body(resource_name, resource_form = nil, resource_method = Net::HTTP::Get)
+		return get_resource_response(resource_name, resource_form).body
 	end
 
-	def self.get_resource_body(resource_name)
-		response = get_resource_response(resource_name)
-
-		if response.kind_of?(Net::HTTPSuccess)
-			return response.body
-		else
-			raise "[#{response.code}] #{response.msg}"
-		end
-	end
-
-	def self.get_resource_object(resource_name)
-		body = get_resource_body(resource_name)
-
-		return JSON.parse(body)
+	def self.get_resource_object(resource_name, resource_form = nil, resource_method = Net::HTTP::Get)
+		return JSON.parse(get_resource_body(resource_name, resource_form))
 	end
 end

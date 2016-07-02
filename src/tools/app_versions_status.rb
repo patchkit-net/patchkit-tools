@@ -76,10 +76,11 @@ if !DISPLAY_SORTS.include? options.display_sort
 	exit
 end
 
-resource_name = "1/apps/#{options.secret}/versions"
-resource_name = resource_name + "?api_key=#{options.api_key}" if options.api_key.nil?
+status_resource_name = "1/apps/#{options.secret}/versions"
+status_resource_name += "?api_key=#{options.api_key}" if not options.api_key.nil?
 
-status = JSON.parse(PatchKitAPI.get_resource_body(resource_name))
+status = PatchKitAPI.get_resource_object(status_resource_name)
+
 status = status.sort_by {|version| options.display_sort == "asc" ? version["id"] : -version["id"]}
 
 if(options.display_limit > -1)
