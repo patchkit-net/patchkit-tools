@@ -102,20 +102,20 @@ if options.type == "diff" && options.diff_summary.nil?
 	exit
 end
 
-latest_version = PatchKitAPI.get_resource_object("/1/apps/#{options.secret}/latest")["id"]
+latest_version = PatchKitAPI.get_resource_object("1/apps/#{options.secret}/versions").detect {|version| version["draft"] == true}["id"]
 
 File.open(options.file) do |file|
   resource_name, resource_form = case options.type
   when "content"
       [
-        "/1/apps/#{options.secret}/versions/#{latest_version}/content_file?api_key=#{options.api_key}",
+        "1/apps/#{options.secret}/versions/#{latest_version}/content_file?api_key=#{options.api_key}",
         {
           "file" => file
         }
       ]
     when "content"
       [
-        "/1/apps/#{options.secret}/versions/#{latest_version}/diff_file?api_key=#{options.api_key}",
+        "1/apps/#{options.secret}/versions/#{latest_version}/diff_file?api_key=#{options.api_key}",
         {
           "file" => file,
           "diff_summary" => options.diff_summary
@@ -123,13 +123,13 @@ File.open(options.file) do |file|
       ]
   end
 
-  PatchKitAPI.get_resource_response(resource_name, resource_form) do |response|
+  PatchKitAPI.get_resource_response(resource_name, resource_form, Net::HTTP::Put, lambda do |request|
     progressBar = ProgressBar.create
 
 		Net::HTTP::UploadProgress.new(request) do |progress|
 			progressBar.progress = [[(progress.upload_size.to_f / file.size) * 100.0,100].min, 0].max
 		end
-
+  end) do |response|
     puts response.body
   end
 end

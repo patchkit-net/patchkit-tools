@@ -12,12 +12,14 @@ module PatchKitAPI
 		return URI.parse("#{API_URL}/#{resource_name}")
 	end
 
-  def self.get_resource_response(resource_name, resource_form = nil, resource_method = Net::HTTP::Get)
+  def self.get_resource_response(resource_name, resource_form = nil, resource_method = Net::HTTP::Get, prepare_request_lambda = nil)
 		url = get_resource_uri(resource_name)
 
 		Net::HTTP.start(url.host, url.port) do |http|
 			request = resource_method.new(url)
-      request.set_form(resource_form) if not resource_form.nil?
+      request.set_form(resource_form, "multipart/form-data") if not resource_form.nil?
+
+      prepare_request_lambda.call request unless prepare_request_lambda.nil?
 
 			http.request(request) do |response|
         if response.kind_of?(Net::HTTPSuccess)
