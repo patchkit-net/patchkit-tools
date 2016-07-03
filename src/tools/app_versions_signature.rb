@@ -28,8 +28,11 @@ options.error_argument_missing("output") if options.output.nil?
 
 latest_version = PatchKitAPI::ResourceRequest.new("1/apps/#{options.secret}/versions/latest").get_object["id"]
 
+puts "1/apps/#{options.secret}/versions/#{latest_version}/signatures?api_key=#{options.api_key}"
+
 PatchKitAPI::ResourceRequest.new("1/apps/#{options.secret}/versions/#{latest_version}/signatures?api_key=#{options.api_key}").get_response do |response|
-  File.open(options.output, 'w') do |file|
+  file = File.open(options.output, 'w')
+  begin
     progress_bar = ProgressBar.new(response.content_length)
     total_length = 0.0
     response.read_body do |segment|
@@ -38,5 +41,7 @@ PatchKitAPI::ResourceRequest.new("1/apps/#{options.secret}/versions/#{latest_ver
       progress_bar.print(total_length, "Downloading signature - #{(total_length / 1024.0 / 1024.0).round(2)} MB out of #{(response.content_length / 1024.0 / 1024.0).round(2)} MB")
     end
     progress_bar.print(response.content_length, "Done!")
+  ensure
+    file.close
   end
 end

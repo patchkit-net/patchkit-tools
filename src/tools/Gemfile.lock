@@ -2,12 +2,14 @@ GEM
   remote: https://rubygems.org/
   specs:
     net-http-uploadprogress (2.0.0)
+    rubyzip (1.2.0)
 
 PLATFORMS
   x64-mingw32
 
 DEPENDENCIES
   net-http-uploadprogress
+  rubyzip
 
 BUNDLED WITH
    1.12.5
