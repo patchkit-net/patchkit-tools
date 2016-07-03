@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
 require_relative 'api.rb'
-require 'ruby-progressbar'
 require 'optparse'
 require 'ostruct'
 
@@ -102,7 +101,7 @@ if options.type == "diff" && options.diff_summary.nil?
   exit
 end
 
-latest_version = PatchKitAPI.get_resource_object("1/apps/#{options.secret}/versions").detect {|version| version["draft"] == true}["id"]
+latest_version = (PatchKitAPI::ResourceRequest.new "1/apps/#{options.secret}/versions").get_object.detect {|version| version["draft"] == true}["id"]
 
 File.open(options.file) do |file|
   resource_name, resource_form = case options.type
@@ -123,13 +122,15 @@ File.open(options.file) do |file|
       ]
   end
 
-  PatchKitAPI.get_resource_object(resource_name, resource_form, Net::HTTP::Put, lambda do |request|
-    progressBar = ProgressBar.create
+  resource_request = PatchKitAPI::ResourceRequest.new(resource_name, resource_form, Net::HTTP::Put)
 
-    Net::HTTP::UploadProgress.new(request) do |progress|
-      progressBar.progress = [[(progress.upload_size.to_f / file.size) * 100.0,100].min, 0].max
-    end
-  end) do |object|
+  progress_bar = ProgressBar.new(file.size)
+  Net::HTTP::UploadProgress.new(resource_request.http_request) do |progress|
+    progress_bar.print(progress.upload_size, "Uploading #{(progress.upload_size / 1024.0 / 1024.0).round(2)} MB out of #{(file.size / 1024.0 / 1024.0).round(2)}")
+  end
+
+  resource_request.get_object do |object|
+    progress_bar.print(file.size, "Done!")
     PatchKitAPI.display_job_progress(object["job_guid"])
   end
 end

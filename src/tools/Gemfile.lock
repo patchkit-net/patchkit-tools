@@ -2,14 +2,12 @@ GEM
   remote: https://rubygems.org/
   specs:
     net-http-uploadprogress (2.0.0)
-    ruby-progressbar (1.8.1)
 
 PLATFORMS
   x64-mingw32
 
 DEPENDENCIES
   net-http-uploadprogress
-  ruby-progressbar
 
 BUNDLED WITH
    1.12.5

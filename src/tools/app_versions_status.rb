@@ -79,7 +79,7 @@ end
 status_resource_name = "1/apps/#{options.secret}/versions"
 status_resource_name += "?api_key=#{options.api_key}" if not options.api_key.nil?
 
-status = PatchKitAPI.get_resource_object(status_resource_name)
+status = PatchKitAPI::ResourceRequest.new(status_resource_name).get_object
 
 status = status.sort_by {|version| options.display_sort == "asc" ? version["id"] : -version["id"]}
 
