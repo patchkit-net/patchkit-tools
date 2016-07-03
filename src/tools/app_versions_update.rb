@@ -1,21 +1,11 @@
 #!/usr/bin/env ruby
 
-require_relative 'api.rb'
-require 'optparse'
-require 'ostruct'
+require_relative 'lib/patchkit_api.rb'
+require_relative 'lib/patchkit_tools.rb'
 
-args = ARGV
-args = $passed_args if __FILE__ != $0
+options = PatchKitTools::Options.new
 
-options = OpenStruct.new
-
-opt_parser = OptionParser.new do |opts|
-  opts.banner = "Usage: patchkit-tools app-versions-update [options]"
-
-  opts.separator ""
-
-  opts.separator "Specific options:"
-
+options.parse("app-versions-update", __FILE__ != $0 ? $passed_args : ARGV) do |opts|
   opts.on("-s", "--secret SECRET",
     "application secret") do |secret|
     options.secret = secret
@@ -40,42 +30,9 @@ opt_parser = OptionParser.new do |opts|
     "version changelog") do |changelog|
     options.changelog = changelog
   end
-
-  opts.separator ""
-  opts.separator "Common options:"
-
-  opts.on_tail("-h", "--help", "show this message") do
-    puts opts
-    exit
-  end
 end
 
-opt_parser.parse!(args)
-
-if options.secret.nil?
-  puts "ERROR: Missing argument value --secret SECRET"
-  puts ""
-  puts opt_parser.help
-  exit
-end
-
-if options.api_key.nil?
-  puts "ERROR: Missing argument value --apikey API_KEY"
-  puts ""
-  puts opt_parser.help
-  exit
-end
-
-if options.version.nil?
-  puts "ERROR: Missing argument value --version VERSION"
-  puts ""
-  puts opt_parser.help
-  exit
-end
-
-if options.label.nil? && options.changelog.nil?
-  puts "ERROR: You must request at least one change"
-  puts ""
-  puts opt_parser.help
-  exit
-end
+options.error_argument_missing("secret") if options.secret.nil?
+options.error_argument_missing("apikey") if options.api_key.nil?
+options.error_argument_missing("version") if options.version.nil?
+options.error("You must request at least one change") if options.label.nil? && options.changelog.nil?

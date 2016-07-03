@@ -1,23 +1,13 @@
 #!/usr/bin/env ruby
 
-require_relative 'api.rb'
-require 'optparse'
-require 'ostruct'
-
-args = ARGV
-args = $passed_args if __FILE__ != $0
+require_relative 'lib/patchkit_api.rb'
+require_relative 'lib/patchkit_tools.rb'
 
 UPLOAD_TYPES = ["content", "diff"]
 
-options = OpenStruct.new
+options = PatchKitTools::Options.new
 
-opt_parser = OptionParser.new do |opts|
-  opts.banner = "Usage: patchkit-tools app-versions-upload [options]"
-
-  opts.separator ""
-
-  opts.separator "Specific options:"
-
+options.parse("app-versions-upload", __FILE__ != $0 ? $passed_args : ARGV) do |opts|
   opts.on("-s", "--secret SECRET",
     "application secret") do |secret|
     options.secret = secret
@@ -47,59 +37,14 @@ opt_parser = OptionParser.new do |opts|
     "diff summary (required when --type diff)") do |diff_summary|
       options.diff_summary = diff_summary
   end
-
-  opts.separator ""
-  opts.separator "Common options:"
-
-  opts.on_tail("-h", "--help", "show this message") do
-    puts opts
-    exit
-  end
 end
 
-opt_parser.parse!(args)
-
-if options.secret.nil?
-  puts "ERROR: Missing argument value --secret SECRET"
-  puts ""
-  puts opt_parser.help
-  exit
-end
-
-if options.api_key.nil?
-  puts "ERROR: Missing argument value --apikey API_KEY"
-  puts ""
-  puts opt_parser.help
-  exit
-end
-
-if options.type.nil?
-  puts "ERROR: Missing argument value --type TYPE"
-  puts ""
-  puts opt_parser.help
-  exit
-end
-
-if !UPLOAD_TYPES.include? options.type
-  puts "ERROR: Invaild argument value --type TYPE"
-  puts ""
-  puts opt_parser.help
-  exit
-end
-
-if options.file.nil?
-  puts "ERROR: Missing argument value --file FILE"
-  puts ""
-  puts opt_parser.help
-  exit
-end
-
-if options.type == "diff" && options.diff_summary.nil?
-  puts "ERROR: Missing argument value --diffsummary DIFF_SUMMARY"
-  puts ""
-  puts opt_parser.help
-  exit
-end
+options.error_argument_missing("secret") if options.secret.nil?
+options.error_argument_missing("apikey") if options.api_key.nil?
+options.error_argument_missing("type") if options.type.nil?
+options.error_invalid_argument_value("type") if !UPLOAD_TYPES.include? options.type
+options.error_argument_missing("diffsummary") if options.type == "diff" && options.diff_summary.nil?
+options.error_argument_missing("file") if options.file.nil?
 
 latest_version = (PatchKitAPI::ResourceRequest.new "1/apps/#{options.secret}/versions").get_object.detect {|version| version["draft"] == true}["id"]
 
@@ -126,7 +71,7 @@ File.open(options.file) do |file|
 
   progress_bar = ProgressBar.new(file.size)
   Net::HTTP::UploadProgress.new(resource_request.http_request) do |progress|
-    progress_bar.print(progress.upload_size, "Uploading #{(progress.upload_size / 1024.0 / 1024.0).round(2)} MB out of #{(file.size / 1024.0 / 1024.0).round(2)}")
+    progress_bar.print(progress.upload_size, "Uploading #{(progress.upload_size / 1024.0 / 1024.0).round(2)} MB out of #{(file.size / 1024.0 / 1024.0).round(2)} MB")
   end
 
   resource_request.get_object do |object|

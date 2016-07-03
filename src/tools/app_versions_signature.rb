@@ -1,21 +1,11 @@
 #!/usr/bin/env ruby
 
-require_relative 'api.rb'
-require 'optparse'
-require 'ostruct'
+require_relative 'lib/patchkit_api.rb'
+require_relative 'lib/patchkit_tools.rb'
 
-args = ARGV
-args = $passed_args if __FILE__ != $0
+options = PatchKitTools::Options.new
 
-options = OpenStruct.new
-
-opt_parser = OptionParser.new do |opts|
-  opts.banner = "Usage: patchkit-tools app-versions-signature [options]"
-
-  opts.separator ""
-
-  opts.separator "Specific options:"
-
+options.parse("app-versions-signature", __FILE__ != $0 ? $passed_args : ARGV) do |opts|
   opts.on("-s", "--secret SECRET",
     "application secret") do |secret|
     options.secret = secret
@@ -30,38 +20,11 @@ opt_parser = OptionParser.new do |opts|
     "output file") do |output|
     options.output = output
   end
-
-  opts.separator ""
-  opts.separator "Common options:"
-
-  opts.on_tail("-h", "--help", "show this message") do
-    puts opts
-    exit
-  end
 end
 
-opt_parser.parse!(args)
-
-if options.secret.nil?
-  puts "ERROR: Missing argument value --secret SECRET"
-  puts ""
-  puts opt_parser.help
-  exit
-end
-
-if options.api_key.nil?
-  puts "ERROR: Missing argument value --apikey API_KEY"
-  puts ""
-  puts opt_parser.help
-  exit
-end
-
-if options.output.nil?
-  puts "ERROR: Missing argument value --output OUTPUT_FILE"
-  puts ""
-  puts opt_parser.help
-  exit
-end
+options.error_argument_missing("secret") if options.secret.nil?
+options.error_argument_missing("apikey") if options.api_key.nil?
+options.error_argument_missing("output") if options.output.nil?
 
 latest_version = PatchKitAPI::ResourceRequest.new("1/apps/#{options.secret}/versions/latest").get_object["id"]
 

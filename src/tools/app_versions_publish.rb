@@ -1,21 +1,11 @@
 #!/usr/bin/env ruby
 
-require_relative 'api.rb'
-require 'optparse'
-require 'ostruct'
+require_relative 'lib/patchkit_api.rb'
+require_relative 'lib/patchkit_tools.rb'
 
-args = ARGV
-args = $passed_args if __FILE__ != $0
+options = PatchKitTools::Options.new
 
-options = OpenStruct.new
-
-opt_parser = OptionParser.new do |opts|
-  opts.banner = "Usage: patchkit-tools app-versions-publish [options]"
-
-  opts.separator ""
-
-  opts.separator "Specific options:"
-
+options.parse("app-versions-publish", __FILE__ != $0 ? $passed_args : ARGV) do |opts|
   opts.on("-s", "--secret SECRET",
     "application secret") do |secret|
     options.secret = secret
@@ -25,28 +15,7 @@ opt_parser = OptionParser.new do |opts|
     "user API key") do |api_key|
     options.api_key = api_key
   end
-
-  opts.separator ""
-  opts.separator "Common options:"
-
-  opts.on_tail("-h", "--help", "show this message") do
-    puts opts
-    exit
-  end
 end
 
-opt_parser.parse!(args)
-
-if options.secret.nil?
-  puts "ERROR: Missing argument value --secret SECRET"
-  puts ""
-  puts opt_parser.help
-  exit
-end
-
-if options.api_key.nil?
-  puts "ERROR: Missing argument value --apikey API_KEY"
-  puts ""
-  puts opt_parser.help
-  exit
-end
+options.error_argument_missing("secret") if options.secret.nil?
+options.error_argument_missing("apikey") if options.api_key.nil?

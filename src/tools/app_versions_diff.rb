@@ -1,21 +1,11 @@
 #!/usr/bin/env ruby
 
-require_relative 'api.rb'
-require 'optparse'
-require 'ostruct'
+require_relative 'lib/patchkit_api.rb'
+require_relative 'lib/patchkit_tools.rb'
 
-args = ARGV
-args = $passed_args if __FILE__ != $0
+options = PatchKitTools::Options.new
 
-options = OpenStruct.new
-
-opt_parser = OptionParser.new do |opts|
-  opts.banner = "Usage: patchkit-tools app-versions-diff [options]"
-
-  opts.separator ""
-
-  opts.separator "Specific options:"
-
+options.parse("app-versions-diff", __FILE__ != $0 ? $passed_args : ARGV) do |opts|
   opts.on("-s", "--signature SIGNATURE_FILE",
     "file with previous version signatures",
     "read more - type 'patchkit-tools app-versions-signature --help'") do |signature|
@@ -31,35 +21,9 @@ opt_parser = OptionParser.new do |opts|
     "output file") do |output|
     options.output = output
   end
-
-  opts.separator ""
-  opts.separator "Common options:"
-
-  opts.on_tail("-h", "--help", "show this message") do
-    puts opts
-    exit
-  end
 end
 
-opt_parser.parse!(args)
 
-if options.signature.nil?
-  puts "ERROR: Missing argument value --signature SIGNATURE_FILE"
-  puts ""
-  puts opt_parser.help
-  exit
-end
-
-if options.files.nil?
-  puts "ERROR: Missing argument value --files FILES_DIRECTORY"
-  puts ""
-  puts opt_parser.help
-  exit
-end
-
-if options.output.nil?
-  puts "ERROR: Missing argument value --output OUTPUT_FILE"
-  puts ""
-  puts opt_parser.help
-  exit
-end
+options.error_argument_missing("signature") if options.signature.nil?
+options.error_argument_missing("files") if options.files.nil?
+options.error_argument_missing("output") if options.output.nil?

@@ -1,24 +1,17 @@
 #!/usr/bin/env ruby
 
-require_relative 'api.rb'
-require 'optparse'
-require 'ostruct'
+require_relative 'lib/patchkit_api.rb'
+require_relative 'lib/patchkit_tools.rb'
 
 DISPLAY_MODES = ["raw", "tree"]
 DISPLAY_SORTS = ["desc", "asc"]
 
-options = OpenStruct.new
+options = PatchKitTools::Options.new
 options.display_mode = "tree"
 options.display_limit = -1
 options.display_sort = "desc"
 
-opt_parser = OptionParser.new do |opts|
-  opts.banner = "Usage: patchkit-tools app-versions-status [options]"
-
-  opts.separator ""
-
-  opts.separator "Specific options:"
-
+options.parse("app-versions-tools", __FILE__ != $0 ? $passed_args : ARGV) do |opts|
   opts.on("-s", "--secret SECRET",
     "application secret") do |secret|
     options.secret = secret
@@ -43,38 +36,11 @@ opt_parser = OptionParser.new do |opts|
     "display sort type; #{DISPLAY_SORTS.join(", ")} (default: #{options.display_sort})") do |display_sort|
     options.display_sort = display_sort
   end
-
-  opts.separator ""
-  opts.separator "Common options:"
-
-  opts.on_tail("-h", "--help", "show this message") do
-    puts opts
-    exit
-  end
 end
 
-opt_parser.parse!(ARGV)
-
-if options.secret.nil?
-  puts "ERROR: Missing argument value --secret SECRET"
-  puts ""
-  puts opt_parser.help
-  exit
-end
-
-if !DISPLAY_MODES.include? options.display_mode
-  puts "ERROR: Invaild argument value --displaymode [DISPLAY_MODE]"
-  puts ""
-  puts opt_parser.help
-  exit
-end
-
-if !DISPLAY_SORTS.include? options.display_sort
-  puts "ERROR: Invaild argument value --display_sort [DISPLAY_SORT]"
-  puts ""
-  puts opt_parser.help
-  exit
-end
+options.error_argument_missing("secret") if options.secret.nil?
+options.error_argument_invaild_value("displaymode") if !DISPLAY_MODES.include? options.display_mode
+options.error_argument_invaild_value("displaysort") if !DISPLAY_SORTS.include? options.display_sort
 
 status_resource_name = "1/apps/#{options.secret}/versions"
 status_resource_name += "?api_key=#{options.api_key}" if not options.api_key.nil?

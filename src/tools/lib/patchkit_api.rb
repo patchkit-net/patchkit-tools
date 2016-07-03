@@ -1,10 +1,10 @@
 require 'rubygems'
 require 'bundler/setup'
-
-require_relative 'progressbar.rb'
 require 'net/http'
 require 'net/http/uploadprogress'
 require 'json'
+
+require_relative 'progress_bar.rb'
 
 module PatchKitAPI
   API_URL = "http://api.patchkit.net"
