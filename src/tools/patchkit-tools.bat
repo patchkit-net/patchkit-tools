@@ -6,7 +6,7 @@ set PROGRAM_NAME=%PROGRAM_NAME:-=_%.rb
 shift
 
 :loop
-if "%1"=="" goto after_loop
+if [%1]==[] goto after_loop
 set PROGRAM_ARGS=%PROGRAM_ARGS% %1
 shift
 goto loop
