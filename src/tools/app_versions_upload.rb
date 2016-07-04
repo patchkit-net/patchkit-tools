@@ -33,7 +33,7 @@ options.parse("app-versions-upload", __FILE__ != $0 ? $passed_args : ARGV) do |o
     options.changelog = changelog
   end
 
-  opts.on("-d", "-diffsummary [DIFF_SUMMARY]",
+  opts.on("-d", "--diffsummary [DIFF_SUMMARY_FILE]",
     "diff summary (required when --type diff)") do |diff_summary|
       options.diff_summary = diff_summary
   end
@@ -46,23 +46,25 @@ options.error_invalid_argument_value("type") if !UPLOAD_TYPES.include? options.t
 options.error_argument_missing("diffsummary") if options.type == "diff" && options.diff_summary.nil?
 options.error_argument_missing("file") if options.file.nil?
 
-latest_version = (PatchKitAPI::ResourceRequest.new "1/apps/#{options.secret}/versions").get_object.detect {|version| version["draft"] == true}["id"]
+latest_version = (PatchKitAPI::ResourceRequest.new "1/apps/#{options.secret}/versions?api_key=#{options.api_key}").get_object.detect {|version| version["draft"] == true}
+raise "Missing draft version" if latest_version.nil?
+latest_version_id = latest_version["id"]
 
 File.open(options.file) do |file|
   resource_name, resource_form = case options.type
   when "content"
       [
-        "1/apps/#{options.secret}/versions/#{latest_version}/content_file?api_key=#{options.api_key}",
+        "1/apps/#{options.secret}/versions/#{latest_version_id}/content_file?api_key=#{options.api_key}",
         {
           "file" => file
         }
       ]
-    when "content"
+    when "diff"
       [
-        "1/apps/#{options.secret}/versions/#{latest_version}/diff_file?api_key=#{options.api_key}",
+        "1/apps/#{options.secret}/versions/#{latest_version_id}/diff_file?api_key=#{options.api_key}",
         {
           "file" => file,
-          "diff_summary" => options.diff_summary
+          "diff_summary" => File.open(options.diff_summary, 'rb') { |f| f.read }
         }
       ]
   end

@@ -17,3 +17,12 @@ def unzip(zip_file, destination_path)
     end
   end
 end
+
+def zip(zip_file, file_hash)
+  FileUtils.rm_rf zip_file if File.exist? zip_file
+  Zip::File.open(zip_file, Zip::File::CREATE) do |zip|
+    file_hash.each do |source, destination|
+      zip.add(destination, source)
+    end
+  end
+end
