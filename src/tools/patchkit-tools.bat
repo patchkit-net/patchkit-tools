@@ -2,7 +2,7 @@
 
 set PROGRAM_ARGS=
 set PROGRAM_NAME=%1
-set PROGRAM_NAME=%PROGRAM_NAME:-=_%.rb
+set PROGRAM_NAME="%~dp0/%PROGRAM_NAME:-=_%.rb"
 shift
 
 :loop

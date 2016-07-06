@@ -1,14 +1,15 @@
 require 'io/console'
 
+# Console progress bar
 class ProgressBar
   def initialize(total)
     @total = total
     @lines_taken = 0
   end
 
+  # Displays progress bar
   def print(progress, status)
     console_width = IO.console.winsize[1]
-    $stdout.sync = false
     if @lines_taken > 0
       $stdout.syswrite "\e[1A\r"
       $stdout.syswrite " " * @previous_status_length if @previous_status_length > status.length

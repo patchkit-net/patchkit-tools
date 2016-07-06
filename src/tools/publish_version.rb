@@ -3,9 +3,9 @@
 require_relative 'lib/patchkit_api.rb'
 require_relative 'lib/patchkit_tools.rb'
 
-options = PatchKitTools::Options.new
+options = PatchKitTools::Options.new("publish_version", "Publishes version")
 
-options.parse("app-versions-publish", __FILE__ != $0 ? $passed_args : ARGV) do |opts|
+options.parse(__FILE__ != $0 ? $passed_args : ARGV) do |opts|
   opts.on("-s", "--secret SECRET",
     "application secret") do |secret|
     options.secret = secret
@@ -19,3 +19,5 @@ end
 
 options.error_argument_missing("secret") if options.secret.nil?
 options.error_argument_missing("apikey") if options.api_key.nil?
+
+raise "Not implemented"
