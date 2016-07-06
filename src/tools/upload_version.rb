@@ -53,7 +53,7 @@ options.error_argument_missing("version") if options.version.nil?
 options.error_argument_missing("mode") if options.mode.nil?
 options.error_invalid_argument_value("mode") unless UPLOAD_MODES.include? options.mode
 options.error_argument_missing("file") if options.file.nil?
-options.error_argument_missing("diffsummary") if options.type == "diff" && options.diff_summary.nil?
+options.error_argument_missing("diffsummary") if options.mode == "diff" && options.diff_summary.nil?
 
 # Check if the version is draft
 puts "Checking version..."
