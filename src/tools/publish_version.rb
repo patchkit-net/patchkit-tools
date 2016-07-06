@@ -29,6 +29,7 @@ options.error_argument_missing("version") if options.version.nil?
 resource_name = "1/apps/#{options.secret}/versions/#{options.version}/publish?api_key=#{options.api_key}"
 
 puts "Publishing veresion..."
+
 PatchKitAPI::ResourceRequest.new(resource_name, nil, Net::HTTP::Put).get_object do |object|
   puts "Result: #{object}"
   puts "Done!"
