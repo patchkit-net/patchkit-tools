@@ -45,17 +45,17 @@ module Librsync
 
   def self.get_lib_name
     if self.is_windows_32bit?
-      raise "Unsupported librsync platform - Windows (32-bit)"
+      "lib/x86/rsync.dll"
     elsif self.is_windows_64bit?
-      "lib/rsync-x64.dll"
+      "lib/x86_64/rsync.dll"
     elsif self.is_mac_osx_32bit?
-      raise "Unsupported librsync platform - Mac OSX (32-bit)"
+      "raise "Unsupported librsync platform - Mac OSX (32-bit)""
     elsif self.is_mac_osx_64bit?
-      raise "Unsupported librsync platform - Mac OSX (64-bit)"
+      "lib/x86_64/rsync.bundle"
     elsif self.is_linux_32bit?
-      raise "Unsupported librsync platform - Mac OSX (32-bit)"
+      "lib/x86/librsync.so"
     elsif self.is_linux_64bit?
-      raise "Unsupported librsync platform - Mac OSX (64-bit)"
+      "lib/x86_64/librsync.so"
     else
       raise "Unsupported librsync platform - Unknown"
     end
