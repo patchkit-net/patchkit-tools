@@ -13,7 +13,8 @@ if ! [ -f "$tool" ] || [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
   find `dirname $0`/src/*.rb | xargs -n 1 --replace basename {} ".rb" | tr _ - | xargs -n 1 --replace echo "    {}"
   exit 1
 else
-  ruby $tool $@
+  ruby $tool "$@"
+
   exit $?
 fi
 

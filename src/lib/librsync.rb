@@ -20,7 +20,7 @@ module Librsync
   end
 
   def self.is_mac_osx?
-    (/darwin/ =~ RUBY_PLATFORM) != nil
+    ((/darwin/ =~ RUBY_PLATFORM) != nil)
   end
 
   def self.is_mac_osx_32bit?
@@ -36,29 +36,33 @@ module Librsync
   end
 
   def self.is_linux_32bit?
-    return is_mac_osx? && 1.size == 4
+    return is_linux? && 1.size == 4
   end
 
   def self.is_linux_64bit?
-    return is_mac_osx? && 1.size == 8
+    return is_linux? && 1.size == 8
   end
 
   def self.get_lib_name
     if self.is_windows_32bit?
-      "lib/x86/rsync.dll"
+      "x86/rsync.dll"
     elsif self.is_windows_64bit?
-      "lib/x86_64/rsync.dll"
+      "x86_64/rsync.dll"
     elsif self.is_mac_osx_32bit?
-      "raise "Unsupported librsync platform - Mac OSX (32-bit)""
+      raise "Unsupported librsync platform - Mac OSX (32-bit)"
     elsif self.is_mac_osx_64bit?
-      "lib/x86_64/rsync.bundle"
+      "x86_64/rsync.bundle"
     elsif self.is_linux_32bit?
-      "lib/x86/librsync.so"
+      "x86/librsync.so"
     elsif self.is_linux_64bit?
-      "lib/x86_64/librsync.so"
+      "x86_64/librsync.so"
     else
       raise "Unsupported librsync platform - Unknown"
     end
+  end
+
+  def self.get_lib_path
+    return "#{File.dirname(__FILE__)}/#{get_lib_name}"
   end
 
   public
@@ -66,7 +70,7 @@ module Librsync
   extend Fiddle::Importer
 
   # Load library
-  dlload self.get_lib_name
+  dlload self.get_lib_path
 
   # rdiff delta
   extern 'int rs_rdiff_delta(char*, char*, char*)'
