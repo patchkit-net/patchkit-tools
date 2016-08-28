@@ -33,8 +33,8 @@ options.parse(__FILE__ != $0 ? $passed_args : ARGV) do |opts|
   end
 
   opts.on("", "--displaysortmode [DISPLAY_SORT_MODE]",
-    "display sort type; #{DISPLAY_SORTS.join(", ")} (default: #{options.display_sort})") do |display_sort|
-    options.display_sort = display_sort
+    "display sort type; #{DISPLAY_SORT_MODES.join(", ")} (default: #{options.display_sort_mode})") do |display_sort_mode|
+    options.display_sort_mode = display_sort_mode
   end
 end
 
