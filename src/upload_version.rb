@@ -6,42 +6,49 @@ require 'net/http/uploadprogress'
 
 UPLOAD_MODES = ["content", "diff"]
 
-options = PatchKitTools::Options.new("upload-version", "Uploads new version by sending content or diff")
-
+options = PatchKitTools::Options.new("upload-version", "Uploads new version by sending content or diff.",
+                                     " -m content -s <secret> -a <api_key> -v <version> -f <file> [optional]",
+                                     " -m diff -s <secret> -a <api_key> -v <version> -f <file> -d <diff_summary>  [optional]")
 options.wait_for_job = true
 
 options.parse(__FILE__ != $0 ? $passed_args : ARGV) do |opts|
-  opts.on("-s", "--secret SECRET",
+  opts.separator "Mandatory"
+
+  opts.on("-s", "--secret <secret>",
     "application secret") do |secret|
     options.secret = secret
   end
 
-  opts.on("-a", "--apikey API_KEY",
+  opts.on("-a", "--apikey <api_key>",
     "user API key") do |api_key|
     options.api_key = api_key
   end
 
-  opts.on("-v", "--version VERSION", Integer,
+  opts.on("-v", "--version <version>", Integer,
     "application version") do |version|
     options.version = version
   end
 
-  opts.on("-m", "--mode MODE",
+  opts.on("-m", "--mode <mode>",
     "upload mode; #{UPLOAD_MODES.join(", ")}") do |mode|
     options.mode = mode
   end
 
-  opts.on("-f", "--file FILE",
+  opts.on("-f", "--file <file>",
     "file to upload") do |file|
     options.file = file
   end
 
-  opts.on("", "--diffsummary [DIFF_SUMMARY]",
-    "file with diff summary (required when --mode diff)") do |diff_summary|
+  opts.on("-d", "--diffsummary <diff_summary>",
+    "file with diff summary (required only when --mode diff)") do |diff_summary|
       options.diff_summary = diff_summary
   end
 
-  opts.on("", "--waitforjob [TRUE/FALSE]",
+  opts.separator ""
+
+  opts.separator "Optional"
+
+  opts.on("-w", "--waitforjob <true | false>",
     "should program wait for finish of version processing job (default: #{options.wait_for_job})") do |wait_for_job|
       options.wait_for_job = wait_for_job
     end

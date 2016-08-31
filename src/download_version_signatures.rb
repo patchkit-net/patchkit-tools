@@ -3,25 +3,28 @@
 require_relative 'lib/patchkit_api.rb'
 require_relative 'lib/patchkit_tools.rb'
 
-options = PatchKitTools::Options.new("download-version-signatures", "Downloads version signatures package")
+options = PatchKitTools::Options.new("download-version-signatures", "Downloads version signatures package.",
+                                     "-s <secret> -a <api_key> -v <version> -o <output>")
 
 options.parse(__FILE__ != $0 ? $passed_args : ARGV) do |opts|
-  opts.on("-s", "--secret SECRET",
+  opts.separator "Mandatory"
+
+  opts.on("-s", "--secret <secret>",
     "application secret") do |secret|
     options.secret = secret
   end
 
-  opts.on("-a", "--apikey API_KEY",
+  opts.on("-a", "--apikey <api_key>",
     "user API key") do |api_key|
     options.api_key = api_key
   end
 
-  opts.on("-v", "--version VERSION", Integer,
+  opts.on("-v", "--version <version>", Integer,
     "application version") do |version|
     options.version = version
   end
 
-  opts.on("-o", "--output OUTPUT",
+  opts.on("-o", "--output <output>",
     "output file") do |output|
     options.output = output
   end

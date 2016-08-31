@@ -3,25 +3,32 @@
 require_relative 'lib/patchkit_api.rb'
 require_relative 'lib/patchkit_tools.rb'
 
-options = PatchKitTools::Options.new("create-version", "Creates new application version (draft)")
+options = PatchKitTools::Options.new("create-version", "Creates new application version (draft).",
+                                     "-s <secret> -a <api_key> -l <label> [-c <changelog>]")
 
 options.parse(__FILE__ != $0 ? $passed_args : ARGV) do |opts|
-  opts.on("-s", "--secret SECRET",
+  opts.separator "Mandatory"
+
+  opts.on("-s", "--secret <secret>",
     "application secret") do |secret|
     options.secret = secret
   end
 
-  opts.on("-a", "--apikey API_KEY",
+  opts.on("-a", "--apikey <api_key>",
     "user API key") do |api_key|
     options.api_key = api_key
   end
 
-  opts.on("-l", "--label LABEL",
+  opts.on("-l", "--label <label>",
     "version label") do |label|
     options.label = label
   end
 
-  opts.on("-c", "--changelog [CHANGELOG]",
+  opts.separator ""
+
+  opts.separator "Optional"
+
+  opts.on("-c", "--changelog <changelog>",
     "version changelog") do |changelog|
     options.changelog = changelog
   end

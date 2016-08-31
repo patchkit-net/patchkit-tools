@@ -5,35 +5,48 @@ require 'ostruct'
 module PatchKitTools
   # Helper class for parsing command line options
   class Options
-    def initialize(program_name, program_description)
+    def initialize(program_name, program_description, *program_usages)
       @source = OpenStruct.new
       @program_name = program_name
       @program_description = program_description
+      @program_usages = program_usages
     end
 
     # Parse command line options
     def parse(args)
       @opt_parser = OptionParser.new do |opts|
-        opts.banner = "Usage: patchkit-tools #{@program_name} [options]"
+        opts.banner = "patchkit-tools #{@program_name}"
 
         opts.separator ""
 
-        opts.separator @program_description
+        opts.separator "Description:"
+
+        opts.separator opts.summary_indent+@program_description
 
         opts.separator ""
 
-        opts.separator "Specific options:"
+        opts.separator "Usage:"
+
+        for program_usage in @program_usages
+          opts.separator opts.summary_indent+"patchkit-tools #{@program_name} #{program_usage}"
+        end
+
+        opts.separator opts.summary_indent+"patchkit-tools #{@program_name} --help"
+
+        opts.separator ""
+
+        opts.separator "Help"
+
+        opts.on("-h", "--help", "outputs a usage message and exit") do
+          puts opts
+          exit
+        end
+
+        opts.separator ""
 
         yield opts
 
         opts.separator ""
-
-        opts.separator "Common options:"
-
-        opts.on_tail("-h", "--help", "show this message") do
-          puts opts
-          exit
-        end
       end
       @opt_parser.parse!(args)
     end

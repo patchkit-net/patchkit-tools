@@ -6,26 +6,29 @@ require_relative 'lib/librsync.rb'
 require_relative 'lib/zip_helper.rb'
 
 
-options = PatchKitTools::Options.new("diff-version", "Creates version diff from previous version signatures zip and new version files")
+options = PatchKitTools::Options.new("diff-version", "Creates version diff from previous version signatures zip and new version files.",
+                                     "-s <signatures> -f <files> -d <diff> -m <diff_summary>")
 
 options.parse(__FILE__ != $0 ? $passed_args : ARGV) do |opts|
-  opts.on("-s", "--signatures SIGNATURES",
+  opts.separator "Mandatory"
+
+  opts.on("-s", "--signatures <signatures>",
     "zip with previous version signatures",
     "learn how to get signatures - type 'patchkit-tools download-version-signatures --help'") do |signatures|
     options.signatures = signatures
   end
 
-  opts.on("-f", "--files FILES",
+  opts.on("-f", "--files <files>",
     "directory with new version files") do |files|
     options.files = files
   end
 
-  opts.on("", "--diff DIFF",
+  opts.on("-d", "--diff <diff>",
     "output diff file") do |diff|
     options.diff = diff
   end
 
-  opts.on("", "--diffsummary DIFF_SUMMARY",
+  opts.on("-m", "--diffsummary <diff_summary>",
     "output diff summary file") do |diff_summary|
     options.diff_summary = diff_summary
   end

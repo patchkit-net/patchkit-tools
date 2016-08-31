@@ -6,41 +6,46 @@ require_relative 'lib/patchkit_tools.rb'
 DISPLAY_MODES = ["raw", "tree"]
 DISPLAY_SORT_MODES = ["desc", "asc"]
 
-options = PatchKitTools::Options.new("list-versions", "Lists application versions")
+options = PatchKitTools::Options.new("list-versions", "Lists application versions.",
+                                     "-s <secret> [optional]")
 options.display_mode = "tree"
 options.display_limit = -1
 options.display_sort_mode = "desc"
 
 options.parse(__FILE__ != $0 ? $passed_args : ARGV) do |opts|
-  opts.on("-s", "--secret SECRET",
+  opts.separator "Mandatory"
+
+  opts.on("-s", "--secret <secret>",
     "application secret") do |secret|
     options.secret = secret
   end
 
-  opts.on("-a", "--apikey [API_KEY]",
+  opts.separator ""
+
+  opts.separator "Optional"
+
+  opts.on("-a", "--apikey <api_key>",
     "user API key (when supplied draft version is also listed)") do |api_key|
     options.api_key = api_key
   end
 
-  opts.on("", "--displaymode [DISPLAY_MODE]",
+  opts.on("-d", "--displaymode <display_mode>",
     "display mode; #{DISPLAY_MODES.join(", ")} (default: #{options.display_mode})") do |display_mode|
-    options.display_mode = display_mode
+      options.display_mode = display_mode
   end
-
-  opts.on("", "--displaylimit [DISPLAY_LIMIT]", Integer,
+  opts.on("-l", "--displaylimit <display_limit>", Integer,
     "limit of displayed versions; -1 = infinite (default: #{options.display_limit})") do |display_limit|
-    options.display_limit = display_limit
+      options.display_limit = display_limit
   end
-
-  opts.on("", "--displaysortmode [DISPLAY_SORT_MODE]",
+  opts.on("-m", "--displaysortmode <display_sort_mode>",
     "display sort type; #{DISPLAY_SORT_MODES.join(", ")} (default: #{options.display_sort_mode})") do |display_sort_mode|
-    options.display_sort_mode = display_sort_mode
+      options.display_sort_mode = display_sort_mode
   end
 end
 
 options.error_argument_missing("secret") if options.secret.nil?
-options.error_argument_invaild_value("displaymode") if !DISPLAY_MODES.include? options.display_mode
-options.error_argument_invaild_value("displaysortmode") if !DISPLAY_SORT_MODES.include? options.display_sort_mode
+options.error_invalid_argument_value("displaymode") if !DISPLAY_MODES.include? options.display_mode
+options.error_invalid_argument_value("displaysortmode") if !DISPLAY_SORT_MODES.include? options.display_sort_mode
 
 resource_name = "1/apps/#{options.secret}/versions"
 
