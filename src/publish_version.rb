@@ -3,8 +3,16 @@
 require_relative 'lib/patchkit_api.rb'
 require_relative 'lib/patchkit_tools.rb'
 
-options = PatchKitTools::Options.new("publish-version", "Publishes version.",
-                                     "-s <secret> -a <api_key> -v <version>")
+module PatchKitTools
+  class PublishVersionTool < PatchKitTools::Tool
+    def initialize
+      super("publish-version", "Publishes version.",
+            "-s <secret> -a <api_key> -v <version>")
+    end
+  end
+end
+
+options = PatchKitTools::Options.new(
 
 options.parse(__FILE__ != $0 ? $passed_args : ARGV) do |opts|
   opts.separator "Mandatory"

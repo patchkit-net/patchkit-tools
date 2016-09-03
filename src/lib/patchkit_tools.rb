@@ -3,12 +3,14 @@ require 'ostruct'
 
 # Helpers for writing PatchKit Tools
 module PatchKitTools
-  def safe_execute
+  def self.execute_tool(tool)
     begin
-      yield
+      tool.parse_options
+      tool.execute
+      exit true
     rescue => error
       puts "ERROR: #{error}"
-      exit
+      exit false
     end
   end
 
@@ -24,7 +26,9 @@ module PatchKitTools
     # Parse options from command line
     def parse_options
       @opt_parser = OptionParser.new do |opts|
-        opts.banner = "patchkit-tools #{@program_name}"
+        opts.banner = ""
+
+        opts.separator "patchkit-tools #{@program_name}"
 
         opts.separator ""
 
@@ -61,38 +65,31 @@ module PatchKitTools
       @opt_parser.parse!(ARGV)
     end
 
-    def error(description)
-      puts "ERROR: #{description}"
-      puts ""
-      puts @opt_parser.help
-      exit false
-    end
-
-    def check_if_option_exists(name)
-      error_argument "Missing argument --#{get_argument_name(name)}" if eval(name).nil?
-    end
-
-    def check_if_argument_exists_or_read!(name)
-      if !$silent && eval(name).nil?
+    def ask_for_option!(name)
+      if eval(name).nil?
         print "Please enter --#{get_argument_name(name)}: "
         eval("#{name} = #{gets.strip}")
       end
 
-      check_if_argument_exists
-    end
-
-    def check_if_valid_argument_value(name, possible_values)
-      error_argument "Invalid argument value --#{get_argument_name(name)}" unless possible_values.include? eval(name)
-    end
-
-    def check_if_directory_exists(name)
       check_if_argument_exists(name)
-      error_argument "Directory doesn't exists --#{get_argument_name(name)}=#{eval(name)}" unless File.directory?(eval(name))
     end
 
-    def check_if_file_exists(name)
+    def check_if_option_exists(name)
+      raise "Missing argument --#{get_argument_name(name)}" if eval(name).nil?
+    end
+
+    def check_if_valid_option_value(name, possible_values)
+      raise "Invalid argument value --#{get_argument_name(name)}" unless possible_values.include? eval(name)
+    end
+
+    def check_if_option_directory_exists(name)
       check_if_argument_exists(name)
-      error_argument "File doesn't exists --#{get_argument_name(name)}=#{eval(name)}" unless File.file?(eval(name))
+      raise "Directory doesn't exists --#{get_argument_name(name)}=#{eval(name)}" unless File.directory?(eval(name))
+    end
+
+    def check_if_option_file_exists(name)
+      check_if_argument_exists(name)
+      raise "File doesn't exists --#{get_argument_name(name)}=#{eval(name)}" unless File.file?(eval(name))
     end
 
     # Alias to @source
