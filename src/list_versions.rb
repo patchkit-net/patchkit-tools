@@ -3,14 +3,27 @@
 require_relative 'lib/patchkit_api.rb'
 require_relative 'lib/patchkit_tools.rb'
 
-DISPLAY_MODES = ["raw", "tree"]
-DISPLAY_SORT_MODES = ["desc", "asc"]
+module PatchKitTools
+  class ListVersionsTool < PatchKitTools::Tool
+    DISPLAY_MODES = ["raw", "tree"]
+    DISPLAY_SORT_MODES = ["desc", "asc"]
 
-tool = PatchKitTools::Tool.new("list-versions", "Lists application versions. Returned data - JSON with list of downloaded versions (if display mode is set to raw).",
-                                     "-s <secret> [optional]")
-tool.display_mode = "tree"
-tool.display_limit = -1
-tool.display_sort_mode = "desc"
+    def initialize
+      super("list-versions",
+            "Lists application versions. Returned data - JSON with list of downloaded versions (if display mode is set to raw).",
+            "-s <secret> [optional]")
+
+      self.display_mode = "tree"
+      self.display_limit = -1
+      self.display_sort_mode = "desc"
+    end
+  end
+end
+
+
+
+tool = PatchKitTools::Tool.new
+
 
 tool.parse_arguments do |opts|
   opts.separator "Mandatory"
@@ -49,34 +62,36 @@ tool.check_if_argument_exists("secret")
 tool.check_if_valid_argument_value("display_mode", DISPLAY_MODES)
 tool.check_if_valid_argument_value("display_sort_mode", DISPLAY_SORT_MODES)
 
-resource_name = "1/apps/#{tool.secret}/versions"
+tool.execute do
+  resource_name = "1/apps/#{tool.secret}/versions"
 
-# Optionally add API Key to the request
-resource_name += "?api_key=#{tool.api_key}" unless tool.api_key.nil?
+  # Optionally add API Key to the request
+  resource_name += "?api_key=#{tool.api_key}" unless tool.api_key.nil?
 
-# Get request result
-status = PatchKitAPI::ResourceRequest.new(resource_name).get_object
+  # Get request result
+  results = PatchKitAPI::ResourceRequest.new(resource_name).get_object
 
-# Sort results
-status = status.sort_by {|version| tool.display_sort_mode == "asc" ? version["id"] : -version["id"]}
+  # Sort results
+  results = results.sort_by {|version| tool.display_sort_mode == "asc" ? version["id"] : -version["id"]}
 
-# Limit versions if display limit was supplied
-if(tool.display_limit > -1)
-  status = status[0,[tool.display_limit, status.length].min]
-end
+  # Limit versions if display limit was supplied
+  if(tool.display_limit > -1)
+    results = results[0,[tool.display_limit, results.length].min]
+  end
 
-# Display data
-case tool.display_mode
-when "raw"
-  tool.print_data status.to_json
-when "tree"
-  status.each do |version|
-    # Display version header
-    tool.print_info "|-- #{version["label"]} (#{version["id"]})"
+  # Display data
+  case tool.display_mode
+  when "raw"
+    tool.print_data results.to_json
+  when "tree"
+    results.each do |version|
+      # Display version header
+      tool.print_data "|-- #{version["label"]} (#{version["id"]})"
 
-    # Display version properites
-    version.each do |key, value|
-      tool.print_info "|   |-- #{key}: #{value}"
+      # Display version properites
+      version.each do |key, value|
+        tool.print_data "|   |-- #{key}: #{value}"
+      end
     end
   end
 end

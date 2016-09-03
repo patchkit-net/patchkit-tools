@@ -37,7 +37,7 @@ module PatchKitAPI
             yield response if block_given?
           else
             # Raise exception when response was incorrect
-            raise "[#{response.code}] #{response.msg}"
+            raise "[#{response.code}] #{response.msg} while requesting #{@url}"
           end
         end
       end
