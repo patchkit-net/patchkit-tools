@@ -2,7 +2,6 @@ require 'rubygems'
 require 'bundler/setup'
 require 'zip'
 
-# Zip helper
 module ZipHelper
   # Unzip to specified desitnation
   def self.unzip(zip_file, destination_path)

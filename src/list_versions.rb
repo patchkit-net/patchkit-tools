@@ -5,7 +5,7 @@ require_relative 'lib/patchkit_tools.rb'
 
 module PatchKitTools
   class ListVersionsTool < PatchKitTools::Tool
-    attr_reader: versions_list
+    attr_reader :versions_list
 
     DISPLAY_MODES = ["raw", "tree"]
     DISPLAY_SORT_MODES = ["desc", "asc"]
@@ -56,7 +56,9 @@ module PatchKitTools
     end
 
     def execute
-      check_options
+      check_if_option_exists("secret")
+      check_if_valid_option_value("display_mode", DISPLAY_MODES)
+      check_if_valid_option_value("display_sort_mode", DISPLAY_SORT_MODES)
 
       resource_name = "1/apps/#{self.secret}/versions"
 
@@ -91,13 +93,6 @@ module PatchKitTools
       end
 
       @versions_list = results
-    end
-
-  private
-    def check_options
-      check_if_option_exists("secret")
-      check_if_valid_option_value("display_mode", DISPLAY_MODES)
-      check_if_valid_option_value("display_sort_mode", DISPLAY_SORT_MODES)
     end
   end
 end

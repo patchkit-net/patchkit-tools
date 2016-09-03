@@ -5,7 +5,7 @@ require_relative 'lib/patchkit_tools.rb'
 
 module PatchKitTools
   class CreateVersionTool < PatchKitTools::Tool
-    attr_reader: created_version_id
+    attr_reader :created_version_id
 
     def initialize
       super("create-version",
@@ -43,7 +43,9 @@ module PatchKitTools
       end
 
       def execute
-        check_options
+        check_if_option_exists("secret")
+        check_if_option_exists("api_key")
+        check_if_option_exists("label")
 
         resource_name = "1/apps/#{self.secret}/versions?api_key=#{self.api_key}"
 
@@ -59,13 +61,6 @@ module PatchKitTools
         puts "A new version of id #{result["id"]} has been created!"
 
         @created_version_id = result["id"]
-      end
-
-    private
-      def check_options
-        check_if_option_exists("secret")
-        check_if_option_exists("api_key")
-        check_if_option_exists("label")
       end
     end
   end
