@@ -1,16 +1,8 @@
 require_relative 'librsync.rb'
 require_relative 'zip_helper.rb'
+require_relative 'file_helper.rb'
 
 module DiffHelper
-  # Lists all files in directory
-  def list_relative(dir)
-    dir = dir.gsub('\\','/')
-    dir_path = Pathname.new(dir)
-    Dir.glob("#{dir}/**/*").map do |e|
-      Pathname.new(e).relative_path_from(dir_path).to_s
-    end
-  end
-
   def get_diff_summary(content_files, signature_files, output_file_size)
     removed_files = signature_files - content_files
     added_files = content_files - signature_files
@@ -38,10 +30,10 @@ module DiffHelper
       FileUtils.mkdir_p temp_dir unless File.directory?(temp_dir)
 
       # List content files
-      content_files = list_relative(content_dir)
+      content_files = FileHelper::list_relative(content_dir)
 
       # List signature files
-      signature_files = list_relative(signatures_dir)
+      signature_files = FileHelper::list_relative(signatures_dir)
 
       archive_files = {}
 

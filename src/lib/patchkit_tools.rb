@@ -10,6 +10,7 @@ module PatchKitTools
       exit true
     rescue => error
       puts "ERROR: #{error}"
+      puts error.backtrace
       exit false
     end
   end
@@ -65,35 +66,62 @@ module PatchKitTools
       @opt_parser.parse!(ARGV)
     end
 
-    def ask_for_option!(name)
-      if eval(name).nil?
-        print "Please enter --#{get_argument_name(name)}: "
-        eval("#{name} = #{gets.strip}")
+    def ask(question)
+      print question
+      return STDIN.gets.strip
+    end
+
+    def ask_yes_or_no(question, default)
+      default.downcase!
+      result = ask(question + (default == "y" ? "(Y/n)" : (default == "n" ? "(y/N)" : "(y/n)")))
+      result.downcase!
+
+      if((default == "y" || default == "n") && (result.nil? || result.empty?))
+        result = default
       end
 
-      check_if_argument_exists(name)
+      if(result == "y")
+        return true
+      elsif(result =="n")
+        return false
+      end
+
+      puts "Invaild answer - #{result}. Try again."
+      ask_yes_or_no(question, default)
+    end
+
+    def ask_if_option_missing!(name)
+      if eval(name).nil?
+        result = ask("Please enter --#{get_argument_name(name)}: ")
+        eval("self.#{name} = \"#{result}\"")
+      end
+
+      check_if_option_exists(name)
     end
 
     def check_if_option_exists(name)
-      raise "Missing argument --#{get_argument_name(name)}" if eval(name).nil?
+      raise "[--#{get_argument_name(name)}] Missing argument" if eval(name).nil? || eval(name).empty?
     end
 
     def check_if_valid_option_value(name, possible_values)
-      raise "Invalid argument value --#{get_argument_name(name)}" unless possible_values.include? eval(name)
+      raise "[--#{get_argument_name(name)}] Invalid argument value" unless possible_values.include? eval(name)
     end
 
     def check_if_option_directory_exists(name)
-      check_if_argument_exists(name)
-      raise "Directory doesn't exists --#{get_argument_name(name)}=#{eval(name)}" unless File.directory?(eval(name))
+      check_if_option_exists(name)
+      raise "[--#{get_argument_name(name)}] Directory doesn't exists - #{eval(name)}" unless File.directory?(eval(name))
     end
 
     def check_if_option_file_exists(name)
-      check_if_argument_exists(name)
-      raise "File doesn't exists --#{get_argument_name(name)}=#{eval(name)}" unless File.file?(eval(name))
+      check_if_option_exists(name)
+      raise "[--#{get_argument_name(name)}] File doesn't exists - #{eval(name)}" unless File.file?(eval(name))
     end
 
     # Alias to @source
     def method_missing(method, *args, &block)
+
+      puts "missing #{method}"
+
       @source.send(method, *args, &block)
     end
 

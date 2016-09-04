@@ -15,16 +15,8 @@ if not [%TOOL%] == [] (
   if exist "%TOOL%" (
     if not "%1" == "--help" (
       if not "%1" == "-h" (
-        set TOOL_ARGS=
-
-        :loop
-        if "%1"=="" goto after_loop
-        set TOOL_ARGS=%TOOL_ARGS% %1
-        shift
-        goto loop
-
-        :after_loop
-        ruby %TOOL%%TOOL_ARGS%
+        echo %*
+        ruby %TOOL% %*
         exit /b ERRORLEVEL
       )
     )

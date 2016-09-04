@@ -41,27 +41,27 @@ module PatchKitTools
           self.changelog = changelog
         end
       end
+    end
 
-      def execute
-        check_if_option_exists("secret")
-        check_if_option_exists("api_key")
-        check_if_option_exists("label")
+    def execute
+      check_if_option_exists("secret")
+      check_if_option_exists("api_key")
+      check_if_option_exists("label")
 
-        resource_name = "1/apps/#{self.secret}/versions?api_key=#{self.api_key}"
+      resource_name = "1/apps/#{self.secret}/versions?api_key=#{self.api_key}"
 
-        resource_form = {
-          "label" => self.label,
-        }
+      resource_form = {
+        "label" => self.label,
+      }
 
-        # Add changelog to request only if it was passed in options
-        resource_form["changelog"] = self.changelog unless self.changelog.nil?
+      # Add changelog to request only if it was passed in options
+      resource_form["changelog"] = self.changelog unless self.changelog.nil?
 
-        puts "Creating version..."
-        result = PatchKitAPI::ResourceRequest.new(resource_name, resource_form, Net::HTTP::Post).get_object
-        puts "A new version of id #{result["id"]} has been created!"
+      puts "Creating version..."
+      result = PatchKitAPI::ResourceRequest.new(resource_name, resource_form, Net::HTTP::Post).get_object
+      puts "A new version of id #{result["id"]} has been created!"
 
-        @created_version_id = result["id"]
-      end
+      @created_version_id = result["id"]
     end
   end
 end
