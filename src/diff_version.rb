@@ -2,7 +2,7 @@
 
 require_relative 'lib/patchkit_api.rb'
 require_relative 'lib/patchkit_tools.rb'
-require_relative 'lib/diff_helper.rb'
+require_relative 'lib/patchkit_version_diff.rb'
 
 module PatchKitTools
   class DiffVersionTool < PatchKitTools::Tool
@@ -52,25 +52,23 @@ module PatchKitTools
 
         puts "Unpacking signatures..."
 
-        ZipHelper.unzip(options.signatures, temporary_signatures_directory)
+        ZipHelper.unzip(self.signatures, temporary_signatures_directory)
 
         puts "Creating diff..."
 
-        diff_summary = DiffHelper::create_diff(options.files, temporary_signatures_directory, temporary_diff_directory, options.diff)
+        diff_summary = PatchKitVersionDiff::create_diff(self.files, temporary_signatures_directory, temporary_diff_directory, self.diff)
 
         puts "Saving diff summary..."
 
-        diff_summary_file = File.open(options.diff_summary, 'wb')
+        diff_summary_file = File.open(self.diff_summary, 'wb')
         begin
           diff_summary_file.write diff_summary
         ensure
           diff_summary_file.close
         end
-
-        puts "Done!"
       ensure
-        # Delete temporary directory
-        FileUtils.rm_rf temporary_directory
+        FileUtils.rm_rf temporary_signatures_directory
+        FileUtils.rm_rf temporary_diff_directory
       end
     end
   end

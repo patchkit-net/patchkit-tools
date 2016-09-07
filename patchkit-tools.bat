@@ -15,7 +15,6 @@ if not [%TOOL%] == [] (
   if exist "%TOOL%" (
     if not "%1" == "--help" (
       if not "%1" == "-h" (
-        echo %*
         ruby %TOOL% %*
         exit /b ERRORLEVEL
       )

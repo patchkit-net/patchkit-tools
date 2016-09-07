@@ -34,29 +34,28 @@ module PatchKitTools
           self.output = output
         end
       end
+    end
 
-      def execute
-        check_if_option_exists("secret")
-        check_if_option_exists("api_key")
-        check_if_option_exists("version")
-        check_if_option_exists("output")
+    def execute
+      check_if_option_exists("secret")
+      check_if_option_exists("api_key")
+      check_if_option_exists("version")
+      check_if_option_exists("output")
 
-        PatchKitAPI::ResourceRequest.new("1/apps/#{self.secret}/versions/#{self.version}/signatures?api_key=#{self.api_key}").get_response do |response|
-          file = File.open(self.output, 'wb')
+      PatchKitAPI::ResourceRequest.new("1/apps/#{self.secret}/versions/#{self.version}/signatures?api_key=#{self.api_key}").get_response do |response|
+        file = File.open(self.output, 'wb')
+        begin
+          progress_bar = ProgressBar.new(response.content_length)
+          total_length = 0.0
+          response.read_body do |segment|
+            file.write segment
 
-          begin
-            progress_bar = ProgressBar.new(response.content_length)
-            total_length = 0.0
-            response.read_body do |segment|
-              file.write segment
-
-              total_length += segment.length
-              progress_bar.print(total_length, "Downloading signature - #{(total_length / 1024.0 / 1024.0).round(2)} MB out of #{(response.content_length / 1024.0 / 1024.0).round(2)} MB")
-            end
-            progress_bar.print(response.content_length, "Done!")
-          ensure
-            file.close
+            total_length += segment.length
+            progress_bar.print(total_length, "Downloading signature - #{(total_length / 1024.0 / 1024.0).round(2)} MB out of #{(response.content_length / 1024.0 / 1024.0).round(2)} MB")
           end
+          progress_bar.print(response.content_length, "Signatures downloaded.")
+        ensure
+          file.close
         end
       end
     end

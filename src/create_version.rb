@@ -54,14 +54,15 @@ module PatchKitTools
         "label" => self.label,
       }
 
-      # Add changelog to request only if it was passed in options
       resource_form["changelog"] = self.changelog unless self.changelog.nil?
 
       puts "Creating version..."
+
       result = PatchKitAPI::ResourceRequest.new(resource_name, resource_form, Net::HTTP::Post).get_object
-      puts "A new version of id #{result["id"]} has been created!"
 
       @created_version_id = result["id"]
+
+      puts "A new version of id #{@created_version_id} has been created!"
     end
   end
 end

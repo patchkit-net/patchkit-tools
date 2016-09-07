@@ -2,8 +2,8 @@ require_relative 'librsync.rb'
 require_relative 'zip_helper.rb'
 require_relative 'file_helper.rb'
 
-module DiffHelper
-  def get_diff_summary(content_files, signature_files, output_file_size)
+module PatchKitVersionDiff
+  def self.get_diff_summary(content_files, signature_files, output_file_size)
     removed_files = signature_files - content_files
     added_files = content_files - signature_files
     modified_files = content_files - added_files
@@ -24,61 +24,41 @@ module DiffHelper
   end
 
   # Creates diff and returns diff summary
-  def self.create_diff(content_dir, signatures_dir, temp_dir, output_file)
+  def self.create_diff(files_dir, signatures_dir, temp_dir, output_file)
     begin
-      # Create temporary directory
       FileUtils.mkdir_p temp_dir unless File.directory?(temp_dir)
 
-      # List content files
-      content_files = FileHelper::list_relative(content_dir)
-
-      # List signature files
+      content_files = FileHelper::list_relative(files_dir)
       signature_files = FileHelper::list_relative(signatures_dir)
-
       archive_files = {}
 
-      # Create diffs for each content file
       content_files.each do |content_file|
-        # Get absolute path of content file
-        content_file_abs = File.join(content_dir, content_file)
+        content_file_abs = File.join(files_dir, content_file)
 
-        # Skip if file is actually directory
         next unless File.file? content_file_abs
 
-        # Check if signature exists
         if signature_files.include? content_file
           # File changed, add delta
-
-          # Get signature file absolute path
           signature_file_abs = File.join(signatures_dir, content_file)
 
-          # Get absolute path of delta file
           delta_file_abs = File.join(temp_dir, content_file)
           delta_file_abs_dir = File.dirname(delta_file_abs)
 
-          # Create temporary directory where delta file will be placed
           FileUtils.mkdir_p delta_file_abs_dir unless File.directory?(delta_file_abs_dir)
 
-          # Create delta file
           Librsync.rs_rdiff_delta(signature_file_abs, content_file_abs, delta_file_abs)
 
-          # Register delta file in archive files
           archive_files[delta_file_abs] = content_file
         else
           # File added, add content
-
-          # Register content file in archive files
           archive_files[content_file_abs] = content_file
         end
       end
 
-      # Zip all of the files to output
       ZipHelper.zip(output_file, archive_files)
 
-      # Generate and return diff summary
       return get_diff_summary(content_files, signature_files, File.size(output_file))
     ensure
-      # Delete temporary directory
       FileUtils.rm_rf temp_dir
     end
   end

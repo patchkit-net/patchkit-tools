@@ -3,7 +3,6 @@ require 'bundler/setup'
 require 'zip'
 
 module ZipHelper
-  # Unzip to specified desitnation
   def self.unzip(zip_file, destination_path)
     FileUtils.mkdir_p destination_path unless File.directory?(destination_path)
 
@@ -22,7 +21,6 @@ module ZipHelper
     end
   end
 
-  # Zip all of the files from the hash
   def self.zip(zip_file, file_hash)
     FileUtils.rm_rf zip_file if File.exist? zip_file
     Zip::File.open(zip_file, Zip::File::CREATE) do |zip|

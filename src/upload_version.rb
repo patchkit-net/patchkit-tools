@@ -2,6 +2,7 @@
 
 require_relative 'lib/patchkit_api.rb'
 require_relative 'lib/patchkit_tools.rb'
+require 'net/http/uploadprogress'
 
 module PatchKitTools
   class UploadVersionTool < PatchKitTools::Tool
@@ -113,8 +114,6 @@ module PatchKitTools
             PatchKitAPI.display_job_progress(object["job_guid"])
           end
         end
-
-        puts "Done!"
       end
     end
   end

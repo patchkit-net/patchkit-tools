@@ -1,13 +1,11 @@
 require 'io/console'
 
-# Console progress bar
 class ProgressBar
   def initialize(total)
     @total = total
     @lines_taken = 0
   end
 
-  # Displays progress bar
   def print(progress, status)
     console_width = IO.console.winsize[1]
     if @lines_taken > 0

@@ -1,12 +1,12 @@
 require 'optparse'
 require 'ostruct'
 
-# Helpers for writing PatchKit Tools
 module PatchKitTools
   def self.execute_tool(tool)
     begin
       tool.parse_options
       tool.execute
+      puts "Done!"
       exit true
     rescue => error
       puts "ERROR: #{error}"
@@ -15,7 +15,7 @@ module PatchKitTools
     end
   end
 
-  # Base class for tools
+  # Base class for every tool
   class Tool
     def initialize(program_name, program_description, *program_usages)
       @source = OpenStruct.new
@@ -67,13 +67,13 @@ module PatchKitTools
     end
 
     def ask(question)
-      print question
+      print "#{question}: "
       return STDIN.gets.strip
     end
 
     def ask_yes_or_no(question, default)
       default.downcase!
-      result = ask(question + (default == "y" ? "(Y/n)" : (default == "n" ? "(y/N)" : "(y/n)")))
+      result = ask(question + " " + (default == "y" ? "(Y/n)" : (default == "n" ? "(y/N)" : "(y/n)")))
       result.downcase!
 
       if((default == "y" || default == "n") && (result.nil? || result.empty?))
@@ -100,7 +100,7 @@ module PatchKitTools
     end
 
     def check_if_option_exists(name)
-      raise "[--#{get_argument_name(name)}] Missing argument" if eval(name).nil? || eval(name).empty?
+      raise "[--#{get_argument_name(name)}] Missing argument" if eval(name).nil? || (eval(name).is_a?(String) && eval(name).empty?)
     end
 
     def check_if_valid_option_value(name, possible_values)
@@ -119,9 +119,6 @@ module PatchKitTools
 
     # Alias to @source
     def method_missing(method, *args, &block)
-
-      puts "missing #{method}"
-
       @source.send(method, *args, &block)
     end
 

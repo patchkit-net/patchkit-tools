@@ -38,11 +38,10 @@ module PatchKitTools
 
       resource_name = "1/apps/#{self.secret}/versions/#{self.version}/publish?api_key=#{self.api_key}"
 
-      puts "Publishing veresion..."
+      puts "Publishing version..."
 
       PatchKitAPI::ResourceRequest.new(resource_name, nil, Net::HTTP::Put).get_object do |object|
-        puts "Result: #{object}"
-        puts "Done!"
+        puts "Version has been published!"
       end
     end
   end

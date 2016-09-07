@@ -1,5 +1,5 @@
 module FileHelper
-  # Lists all files in directory
+  # Lists all files in directory and returns their relative path
   def self.list_relative(dir)
     dir = dir.gsub('\\','/')
     dir_path = Pathname.new(dir)
