@@ -10,7 +10,6 @@ module PatchKitTools
       exit true
     rescue => error
       puts "ERROR: #{error}"
-      puts error.backtrace
       exit false
     end
   end
