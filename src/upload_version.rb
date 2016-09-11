@@ -66,8 +66,8 @@ module PatchKitTools
       check_if_option_exists("api_key")
       check_if_option_exists("version")
       check_if_valid_option_value("mode", UPLOAD_MODES)
-      check_if_option_file_exists("file")
-      check_if_option_file_exists("diff_summary") if self.mode == "diff"
+      check_if_option_file_exists_and_readable("file")
+      check_if_option_file_exists_and_readable("diff_summary") if self.mode == "diff"
 
       # Check if the version is draft
       puts "Checking version..."
