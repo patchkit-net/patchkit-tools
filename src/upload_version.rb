@@ -99,6 +99,8 @@ module PatchKitTools
         # Create upload request
         resource_request = PatchKitAPI::ResourceRequest.new(resource_name, resource_form, Net::HTTP::Put)
 
+        resource_request.http_request['Content-Length'] = File.size(file)
+
         # Initialize progress bar
         progress_bar = ProgressBar.new(file.size)
         Net::HTTP::UploadProgress.new(resource_request.http_request) do |progress|
