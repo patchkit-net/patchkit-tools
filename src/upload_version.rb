@@ -61,6 +61,73 @@ module PatchKitTools
       end
     end
 
+    def upload(&block)
+      begin
+        #TODO: Try to replace file_size with file_stream.size and confirm that it's working.
+        file_stream = File.open(self.file)
+        file_size = File.size(self.file)
+
+        new_upload_resource_name = "1/uploads?api_key=#{self.api_key}"
+        new_upload_resource_form =
+        {
+          "total_size_bytes" => file_size.to_s
+        }
+
+        new_upload_resource_request = PatchKitAPI::ResourceRequest.new(new_upload_resource_name, new_upload_resource_form, Net::HTTP::Post)
+
+        upload_id = new_upload_resource_request.get_object["id"]
+
+        offset = 0
+
+        until offset == file_size
+          uploaded_chunk_size = upload_chunk(file_stream, file_size, offset, upload_id) do |uploaded_bytes|
+            block.call(offset + uploaded_bytes)
+          end
+
+          offset = offset + uploaded_chunk_size
+        end
+
+        upload_id
+      ensure
+        file_stream.close
+      end
+    end
+
+    def upload_chunk(file_stream, file_size, offset, upload_id, &block)
+      chunk_file_name = "chunk_#{offset}"
+
+      begin
+        chunk_file_write = File.open(chunk_file_name, 'wb')
+        chunk_file_write.write file_stream.read(PatchKitConfig.upload_chunk_size)
+        chunk_file_write.close
+
+        upload_chunk_resource_name = "1/uploads/#{upload_id}/chunk?api_key=#{self.api_key}"
+
+        chunk_file_read = File.open(chunk_file_name, 'rb')
+
+        upload_chunk_resource_form =
+        {
+          "chunk" => chunk_file_read
+        }
+
+        upload_chunk_resource_request = PatchKitAPI::ResourceRequest.new(upload_chunk_resource_name, upload_chunk_resource_form, Net::HTTP::Post)
+
+        upload_chunk_resource_request.http_request['Content-Range'] = "bytes #{offset}-#{offset + PatchKitConfig.upload_chunk_size.to_i - 1}/#{file_size}"
+
+        Net::HTTP::UploadProgress.new(upload_chunk_resource_request.http_request) do |progress|
+          block.call(progress.upload_size)
+        end
+
+        upload_chunk_resource_request.get_response
+
+        chunk_file_read.close
+
+        File::size(chunk_file_name)
+      ensure
+        File::unlink(chunk_file_name) if File::exist?(chunk_file_name)
+      end
+    end
+
     def execute
       check_if_option_exists("secret")
       check_if_option_exists("api_key")
@@ -74,47 +141,43 @@ module PatchKitTools
       version_status = (PatchKitAPI::ResourceRequest.new "1/apps/#{self.secret}/versions/#{self.version}?api_key=#{self.api_key}").get_object
       raise "Version must be a draft" unless version_status["draft"]
 
-      File.open(self.file) do |file|
-        # Depending on the current mode, choose resource name and form data
-        resource_name, resource_form = case self.mode
-        when "content"
-            [
-              "1/apps/#{self.secret}/versions/#{self.version}/content_file?api_key=#{self.api_key}",
-              {
-                "file" => file
-              }
-            ]
-          when "diff"
-            [
-              "1/apps/#{self.secret}/versions/#{self.version}/diff_file?api_key=#{self.api_key}",
-              {
-                "file" => file,
-                "diff_summary" => File.open(self.diff_summary, 'rb') { |f| f.read }
-              }
-            ]
-        end
+      puts "Uploading #{self.mode}..."
 
-        puts "Uploading #{self.mode}..."
+      file_size = File.size(self.file)
 
-        # Create upload request
-        resource_request = PatchKitAPI::ResourceRequest.new(resource_name, resource_form, Net::HTTP::Put)
+      progress_bar = ProgressBar.new(file_size)
 
-        resource_request.http_request['Content-Length'] = File.size(file)
+      upload_id = upload do |progress|
+        progress_bar.print(progress, "Uploading #{(progress / 1024.0 / 1024.0).round(2)} MB out of #{(file_size / 1024.0 / 1024.0).round(2)} MB")
+      end
 
-        # Initialize progress bar
-        progress_bar = ProgressBar.new(file.size)
-        Net::HTTP::UploadProgress.new(resource_request.http_request) do |progress|
-          progress_bar.print(progress.upload_size, "Uploading #{(progress.upload_size / 1024.0 / 1024.0).round(2)} MB out of #{(file.size / 1024.0 / 1024.0).round(2)} MB")
-        end
+      update_version_resource_name, update_version_resource_form = case self.mode
+      when "content"
+        [
+          "1/apps/#{self.secret}/versions/{version_id}/content_file?api_key=#{self.api_key}",
+          {
+            "upload_id" => upload_id.to_s
+          }
+        ]
+      when "diff"
+        [
+          "1/apps/#{self.secret}/versions/#{self.version}/diff_file?api_key=#{self.api_key}",
+          {
+            "upload_id" => upload_id.to_s,
+            "diff_summary" => File.open(self.diff_summary, 'rb') { |f| f.read }
+          }
+        ]
+      end
 
-        resource_request.get_object do |object|
-          # Optionally wait for finish of version processing job
-          if(self.wait_for_job)
-            puts "Waiting for finish of version processing job..."
+      update_version_resource_request = PatchKitAPI::ResourceRequest.new(update_version_resource_name, update_version_resource_form, Net::HTTP::Put)
 
-            # Display job progress bar
-            PatchKitAPI.display_job_progress(object["job_guid"])
-          end
+      update_version_resource_request.get_object do |object|
+        # Optionally wait for finish of version processing job
+        if(self.wait_for_job)
+          puts "Waiting for finish of version processing job..."
+
+          # Display job progress bar
+          PatchKitAPI.display_job_progress(object["job_guid"])
         end
       end
     end

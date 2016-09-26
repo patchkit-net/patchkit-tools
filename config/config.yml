@@ -2,7 +2,12 @@
 
 # Behaviour
 
-debug: false
+debug: true
 
 # Api connection
 api_url: http://api.patchkit.net
+
+# Uploading
+
+# Upload chunk size in bytes
+upload_chunk_size: 262144
