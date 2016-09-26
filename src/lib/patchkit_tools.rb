@@ -14,7 +14,7 @@ module PatchKitTools
       if PatchKitConfig.debug
         puts error.backtrace
       end
-      
+
       exit false
     end
   end
@@ -96,7 +96,7 @@ module PatchKitTools
 
     def ask_if_option_missing!(name)
       if eval(name).nil?
-        result = ask("Please enter --#{get_argument_name(name)}: ")
+        result = ask("Please enter --#{get_argument_name(name)}")
         eval("self.#{name} = \"#{result}\"")
       end
 
