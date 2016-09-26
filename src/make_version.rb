@@ -205,7 +205,7 @@ module PatchKitTools
         end
       end
 
-      if(self.publish)
+      if(self.publish == "true")
         publish_version(draft_version_id)
       end
     end
