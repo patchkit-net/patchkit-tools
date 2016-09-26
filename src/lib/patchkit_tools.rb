@@ -10,6 +10,11 @@ module PatchKitTools
       exit true
     rescue => error
       puts "ERROR: #{error}"
+
+      if PatchKitConfig.debug
+        puts error.backtrace
+      end
+      
       exit false
     end
   end

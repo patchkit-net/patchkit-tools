@@ -1,0 +1,8 @@
+# PatchKit Tools Configuration
+
+# Behaviour
+
+debug: false
+
+# Api connection
+api_url: http://api.patchkit.net

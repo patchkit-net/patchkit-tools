@@ -3,13 +3,11 @@ require 'bundler/setup'
 require 'net/http'
 require 'json'
 require_relative 'progress_bar.rb'
+require_relative 'patchkit_config.rb'
 
 module PatchKitAPI
-  # TODO: Export this url to configuration file.
-  API_URL = "http://api.patchkit.net"
-
   def self.get_resource_uri(resource_name)
-    return URI.parse("#{API_URL}/#{resource_name}")
+    URI.parse("#{PatchKitConfig.api_url}/#{resource_name}")
   end
 
   class ResourceRequest
