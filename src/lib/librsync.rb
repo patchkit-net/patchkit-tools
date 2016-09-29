@@ -1,3 +1,5 @@
+require 'rubygems'
+require 'bundler/setup'
 require 'fiddle'
 require 'fiddle/import'
 

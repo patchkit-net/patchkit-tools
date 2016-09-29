@@ -2,6 +2,8 @@
 
 require_relative 'lib/patchkit_api.rb'
 require_relative 'lib/patchkit_tools.rb'
+require 'rubygems'
+require 'bundler/setup'
 require 'net/http/uploadprogress'
 
 module PatchKitTools
