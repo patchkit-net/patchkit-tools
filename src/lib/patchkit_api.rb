@@ -1,5 +1,3 @@
-require 'rubygems'
-require 'bundler/setup'
 require 'net/http'
 require 'json'
 require_relative 'progress_bar.rb'
