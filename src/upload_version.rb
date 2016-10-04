@@ -156,7 +156,7 @@ module PatchKitTools
       update_version_resource_name, update_version_resource_form = case self.mode
       when "content"
         [
-          "1/apps/#{self.secret}/versions/{version_id}/content_file?api_key=#{self.api_key}",
+          "1/apps/#{self.secret}/versions/#{self.version}/content_file?api_key=#{self.api_key}",
           {
             "upload_id" => upload_id.to_s
           }
