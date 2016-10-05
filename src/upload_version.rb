@@ -159,6 +159,8 @@ module PatchKitTools
         end
       end
 
+      progress_bar.print(file_size, "Upload done")
+
       update_version_resource_name, update_version_resource_form = case self.mode
       when "content"
         [
