@@ -65,6 +65,9 @@ module PatchKitAPI
       progress_bar.print(job_status["progress"], status_message)
 
       if(job_status["finished"])
+        if(job_status["status"] != 0)
+          raise job_status["status_message"]
+        end
         break
       end
 
