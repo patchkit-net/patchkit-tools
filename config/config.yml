@@ -10,4 +10,4 @@ api_url: http://api.patchkit.net
 # Uploading
 
 # Upload chunk size in bytes
-upload_chunk_size: 262144
+upload_chunk_size: 33554432
