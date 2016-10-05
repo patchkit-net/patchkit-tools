@@ -149,8 +149,14 @@ module PatchKitTools
 
       progress_bar = ProgressBar.new(file_size)
 
+      last_upload_callback_time = 0
+
       upload_id = upload do |progress|
-        progress_bar.print(progress, "Uploading #{(progress / 1024.0 / 1024.0).round(2)} MB out of #{(file_size / 1024.0 / 1024.0).round(2)} MB")
+        current_upload_callback_time = Time.now.to_f
+        if current_upload_callback_time - last_upload_callback_time > 0.5
+          progress_bar.print(progress, "Uploading #{(progress / 1024.0 / 1024.0).round(2)} MB out of #{(file_size / 1024.0 / 1024.0).round(2)} MB")
+          last_upload_callback_time = current_upload_callback_time
+        end
       end
 
       update_version_resource_name, update_version_resource_form = case self.mode
