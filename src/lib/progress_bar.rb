@@ -10,6 +10,10 @@ class ProgressBar
 
   def print(progress, status)
     begin
+      if status.nil?
+        status = ""
+      end
+
       if @semaphore.try_lock
         console_width = IO.console.winsize[1]
         if @lines_taken > 0
