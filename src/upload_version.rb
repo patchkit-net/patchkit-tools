@@ -105,24 +105,24 @@ module PatchKitTools
 
         upload_chunk_resource_name = "1/uploads/#{upload_id}/chunk?api_key=#{self.api_key}"
 
-        chunk_file_read = File.open(chunk_file_name, 'rb')
+        File.open(chunk_file_name, 'rb') do |chunk_file_read|
 
-        upload_chunk_resource_form =
-        {
-          "chunk" => chunk_file_read
-        }
+          upload_chunk_resource_form =
+          {
+            "chunk" => chunk_file_read
+          }
 
-        upload_chunk_resource_request = PatchKitAPI::ResourceRequest.new(upload_chunk_resource_name, upload_chunk_resource_form, Net::HTTP::Post)
+          upload_chunk_resource_request = PatchKitAPI::ResourceRequest.new(upload_chunk_resource_name, upload_chunk_resource_form, Net::HTTP::Post)
 
-        upload_chunk_resource_request.http_request['Content-Range'] = "bytes #{offset}-#{offset + PatchKitConfig.upload_chunk_size.to_i - 1}/#{file_size}"
+          upload_chunk_resource_request.http_request['Content-Range'] = "bytes #{offset}-#{offset + PatchKitConfig.upload_chunk_size.to_i - 1}/#{file_size}"
 
-        Net::HTTP::UploadProgress.new(upload_chunk_resource_request.http_request) do |progress|
-          block.call(progress.upload_size)
+          Net::HTTP::UploadProgress.new(upload_chunk_resource_request.http_request) do |progress|
+            block.call(progress.upload_size)
+          end
+
+          upload_chunk_resource_request.get_response
+
         end
-
-        upload_chunk_resource_request.get_response
-
-        chunk_file_read.close
 
         File::size(chunk_file_name)
       ensure
