@@ -2,6 +2,8 @@ require 'rubygems'
 require 'bundler/setup'
 require 'zip'
 
+Zip.write_zip64_support = true
+
 module ZipHelper
   def self.unzip(zip_file, destination_path)
     FileUtils.mkdir_p destination_path unless File.directory?(destination_path)
