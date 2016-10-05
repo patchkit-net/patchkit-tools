@@ -13,6 +13,8 @@ module PatchKitTools
 
       if PatchKitConfig.debug
         puts error.backtrace
+        puts "Press return to continue..."
+        STDIN.gets
       end
 
       exit false
