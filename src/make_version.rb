@@ -201,7 +201,7 @@ module PatchKitTools
 
       if(self.publish.nil?)
         if(ask_yes_or_no("Do you want to publish the version?", "y"))
-          self.publish = true
+          self.publish = "true"
         end
       end
 
