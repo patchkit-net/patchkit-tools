@@ -57,9 +57,20 @@ module PatchKitVersionDiff
 
       ZipHelper.zip(output_file, archive_files)
 
-      return get_diff_summary(content_files, signature_files, File.size(output_file))
+      return get_diff_summary(
+        add_slashes_to_empty_dirs(files_dir, content_files),
+        add_slashes_to_empty_dirs(signatures_dir, signature_files),
+        File.size(output_file)
+      )
     ensure
       FileUtils.rm_rf temp_dir
+    end
+  end
+
+  def self.add_slashes_to_empty_dirs(base_dir, files)
+    files.map do |f|
+      path = File.join(base_dir, f)
+      File.directory?(path) ? "#{f}/" : f
     end
   end
 end

@@ -7,3 +7,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Changed
 - Config file is now optional
+
+### Fixed
+- Diff summary missing slashes on empty dirs
