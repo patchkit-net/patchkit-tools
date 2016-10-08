@@ -95,39 +95,31 @@ module PatchKitTools
       end
     end
 
-    def upload_chunk(file_stream, file_size, offset, upload_id, &block)
+    def upload_chunk(file_stream, file_size, offset, upload_id)
       chunk_file_name = "chunk_#{offset}"
 
-      begin
-        chunk_file_write = File.open(chunk_file_name, 'wb')
-        chunk_file_write.write file_stream.read(PatchKitConfig.upload_chunk_size)
-        chunk_file_write.close
+      File.open(chunk_file_name, 'wb') do |f|
+        f.write file_stream.read(PatchKitConfig.upload_chunk_size)
+      end
 
-        upload_chunk_resource_name = "1/uploads/#{upload_id}/chunk?api_key=#{self.api_key}"
+      File.open(chunk_file_name, 'rb') do |f|
+        form_data = { "chunk" => f }
+        resource_name = "1/uploads/#{upload_id}/chunk?api_key=#{api_key}"
+        request = PatchKitAPI::ResourceRequest.new(resource_name, form_data, Net::HTTP::Post)
 
-        File.open(chunk_file_name, 'rb') do |chunk_file_read|
+        request.http_request['Content-Range'] =
+          "bytes #{offset}-#{offset + PatchKitConfig.upload_chunk_size.to_i - 1}/#{file_size}"
 
-          upload_chunk_resource_form =
-          {
-            "chunk" => chunk_file_read
-          }
-
-          upload_chunk_resource_request = PatchKitAPI::ResourceRequest.new(upload_chunk_resource_name, upload_chunk_resource_form, Net::HTTP::Post)
-
-          upload_chunk_resource_request.http_request['Content-Range'] = "bytes #{offset}-#{offset + PatchKitConfig.upload_chunk_size.to_i - 1}/#{file_size}"
-
-          Net::HTTP::UploadProgress.new(upload_chunk_resource_request.http_request) do |progress|
-            block.call(progress.upload_size)
-          end
-
-          upload_chunk_resource_request.get_response
-
+        Net::HTTP::UploadProgress.new(request.http_request) do |progress|
+          yield progress.upload_size
         end
 
-        File::size(chunk_file_name)
-      ensure
-        File::unlink(chunk_file_name) if File::exist?(chunk_file_name)
+        request.get_response
       end
+
+      File.size(chunk_file_name)
+    ensure
+      File.unlink(chunk_file_name) if File.exist?(chunk_file_name)
     end
 
     def execute
