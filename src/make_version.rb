@@ -180,7 +180,7 @@ module PatchKitTools
       if(versions_list.length != 0 && versions_list[0]["draft"])
         draft_version_id = versions_list[0]["id"]
 
-        if(!ask_yes_or_no("Draft version is already created (with id #{draft_version_id}). It will be used for making new version. Do you want to proceed?", "y"))
+        if(!ask_yes_or_no("Draft version already exists. Its contents will be overwritten. Proceed?", "y"))
           exit
         end
 
