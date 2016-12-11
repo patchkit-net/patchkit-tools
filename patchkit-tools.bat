@@ -24,9 +24,14 @@ if not [%TOOL%] == [] (
 
 echo Usage: patchkit-tools [tool_name] [tool_arguments]
 echo.
+echo Tool help: patchkit-tools [tool_name] --help
+echo.
 echo Available tools:
 for  %%i in ("%~dp0\src\*.rb") do (
   set z=%%~ni
   echo     !z:_=-!
 )
+echo.
+echo Getting started: http://docs.patchkit.net/tools.html
+echo.
 exit /b 1
