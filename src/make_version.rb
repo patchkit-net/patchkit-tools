@@ -13,7 +13,7 @@ require_relative 'upload_version.rb'
 module PatchKitTools
   class MakeVersionTool < PatchKitTools::Tool
     def initialize
-      super("make-version", "Creates a version, generates a diff (if it's possible), uploads it and publishes.",
+      super("make-version", "Creates and uploads a complete version with optional publishing.",
             "[-s <secret>] [-a <api_key>] [-l <label>] [-f <files>] [-c <changelog>]")
     end
 
