@@ -7,4 +7,9 @@ module FileHelper
       Pathname.new(e).relative_path_from(dir_path).to_s
     end
   end
+
+  def self.only_zip_file_in_directory(dir)
+    l = list_relative(dir)
+    l.count == 1 && l[0].end_with?(".zip")
+  end
 end

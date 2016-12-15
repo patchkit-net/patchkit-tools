@@ -28,7 +28,7 @@ module PatchKitTools
     end
 
     def execute
-      check_if_option_directory_exists("files")
+      check_option_version_files_directory("files")
 
       puts "Creating content..."
 

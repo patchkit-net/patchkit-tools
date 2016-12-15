@@ -1,5 +1,6 @@
 require 'optparse'
 require 'ostruct'
+require_relative 'file_helper.rb'
 
 module PatchKitTools
   def self.execute_tool(tool)
@@ -123,6 +124,11 @@ module PatchKitTools
       check_if_option_exists(name)
       raise "[--#{get_argument_name(name)}] File doesn't exists - #{eval(name)}" unless File.file?(eval(name))
       raise "[--#{get_argument_name(name)}] File isn't readable - #{eval(name)}" unless File.readable?(eval(name))
+    end
+
+    def check_option_version_files_directory(name)
+      check_if_option_directory_exists(name)
+      raise "[--#{get_argument_name(name)}] You've selected a directory that contains a single zip file - #{eval(name)}" if FileHelper::only_zip_file_in_directory(eval(name))
     end
 
     # Alias to @source

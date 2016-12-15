@@ -42,7 +42,7 @@ module PatchKitTools
 
     def execute
       check_if_option_exists("signatures")
-      check_if_option_directory_exists("files")
+      check_option_version_files_directory("files")
       check_if_option_exists("diff")
       check_if_option_exists("diff_summary")
 
