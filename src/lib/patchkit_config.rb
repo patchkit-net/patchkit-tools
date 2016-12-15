@@ -40,7 +40,7 @@ module PatchKitConfig
     # default values
 
     def default_debug
-      true
+      false
     end
 
     def default_api_url
