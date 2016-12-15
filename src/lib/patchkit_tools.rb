@@ -115,7 +115,8 @@ module PatchKitTools
 
     def check_if_option_directory_exists(name)
       check_if_option_exists(name)
-      raise "[--#{get_argument_name(name)}] Directory doesn't exists - #{eval(name)}" unless File.directory?(eval(name))
+      raise "[--#{get_argument_name(name)}] Directory doesn't exists - #{eval(name)}" unless File.exists?(eval(name))
+      raise "[--#{get_argument_name(name)}] Excepted argument to be a directory, not a file - #{eval(name)}" unless File.directory?(eval(name))
     end
 
     def check_if_option_file_exists_and_readable(name)
