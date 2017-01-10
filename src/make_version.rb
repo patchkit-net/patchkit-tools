@@ -54,6 +54,11 @@ module PatchKitTools
           "version changelog") do |changelog|
           self.changelog = changelog
         end
+
+        opts.on("-z", "--changelogfile <changelog_file>",
+          "text file with version changelog") do |changelog_file|
+          self.changelog_file = changelog_file
+        end
       end
     end
 
@@ -75,6 +80,7 @@ module PatchKitTools
       update_version_tool.api_key = self.api_key
       update_version_tool.label = self.label
       update_version_tool.changelog = self.changelog unless self.changelog.nil? || self.changelog.empty?
+      update_version_tool.changelog_file = self.changelog_file unless self.changelog_file.nil? || self.changelog_file.empty?
       update_version_tool.version = draft_version_id
 
       update_version_tool.execute

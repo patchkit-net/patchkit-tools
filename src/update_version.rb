@@ -42,6 +42,11 @@ module PatchKitTools
           "version changelog") do |changelog|
           self.changelog = changelog
         end
+
+        opts.on("-z", "--changelogfile <changelog_file>",
+          "text file with version changelog") do |changelog_file|
+          self.changelog_file = changelog_file
+        end
       end
     end
 
@@ -50,13 +55,14 @@ module PatchKitTools
       check_if_option_exists("api_key")
       check_if_option_exists("version")
 
-      raise "At least one property is required" if self.label.nil? && self.changelog.nil?
+      raise "At least one property is required" if self.label.nil? && self.changelog.nil? && self.changelog_file.nil?
 
       resource_name = "1/apps/#{self.secret}/versions/#{self.version}?api_key=#{self.api_key}"
       resource_form = {}
 
       resource_form["label"] = self.label unless self.label.nil?
       resource_form["changelog"] = self.changelog unless self.changelog.nil?
+      resource_form["changelog"] = File.open(self.changelog_file, 'rb') { |f| f.read } unless self.changelog_file.nil?
 
       puts "Updating..."
 
