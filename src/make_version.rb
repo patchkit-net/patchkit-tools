@@ -189,13 +189,11 @@ module PatchKitTools
         if(!ask_yes_or_no("Draft version already exists. Its contents will be overwritten. Proceed?", "y"))
           exit
         end
-
-
-
-        update_draft_version(draft_version_id)
       else
         draft_version_id = create_draft_version
       end
+
+      update_draft_version(draft_version_id)
 
       if(draft_version_id == 1)
         puts "There's no previous version. All of the files content will be uploaded"
