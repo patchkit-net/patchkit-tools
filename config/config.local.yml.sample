@@ -6,7 +6,7 @@
 # Behaviour
 
 # This defines if tools should print the full stack trace in case of error.
-# debug: true
+# debug: false
 
 # Defines the host to which patchkit tools should connect to.
 # api_url: http://api.patchkit.net
