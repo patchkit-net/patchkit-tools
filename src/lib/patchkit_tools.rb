@@ -128,7 +128,7 @@ module PatchKitTools
 
     def check_option_version_files_directory(name)
       check_if_option_directory_exists(name)
-      raise "[--#{get_argument_name(name)}] You've selected a directory that contains a single zip file - #{eval(name)}" if FileHelper::only_zip_file_in_directory(eval(name))
+      raise "[--#{get_argument_name(name)}] You've selected a directory that contains a single zip file #{eval(name)}. You need to pass a directory with unzipped files of your application." if FileHelper::only_zip_file_in_directory(eval(name))
     end
 
     # Alias to @source

@@ -177,7 +177,7 @@ module PatchKitTools
       ask_if_option_missing!("api_key")
       ask_if_option_missing!("label")
       ask_if_option_missing!("files")
-      check_if_option_directory_exists("files")
+      check_option_version_files_directory("files")
 
       versions_list = get_versions_list
 
