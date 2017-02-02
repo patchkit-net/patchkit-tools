@@ -1,5 +1,14 @@
 #!/usr/bin/env ruby
 
+=begin
+$META_START$
+name: download-version-signatures
+summary: Downloads version signatures package.
+basic: false
+class: PatchKitTools::DownloadVersionSignaturesTool
+$META_END$
+=end
+
 require_relative 'lib/patchkit_api.rb'
 require_relative 'lib/patchkit_tools.rb'
 

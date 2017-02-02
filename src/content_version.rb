@@ -1,5 +1,14 @@
 #!/usr/bin/env ruby
 
+=begin
+$META_START$
+name: content-version
+summary: Creates version content file.
+basic: false
+class: PatchKitTools::ContentVersionTool
+$META_END$
+=end
+
 require_relative 'lib/patchkit_api.rb'
 require_relative 'lib/patchkit_tools.rb'
 require_relative 'lib/patchkit_version_content.rb'

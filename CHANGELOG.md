@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 - Config file is now optional
+- New main help format
 
 ### Fixed
 - Diff summary missing slashes on empty dirs
