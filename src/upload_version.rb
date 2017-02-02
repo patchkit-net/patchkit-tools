@@ -82,11 +82,15 @@ module PatchKitTools
         offset = 0
 
         until offset == file_size
-          uploaded_chunk_size = upload_chunk(file_stream, file_size, offset, upload_id) do |uploaded_bytes|
-            block.call(offset + uploaded_bytes)
-          end
+          begin
+            uploaded_chunk_size = upload_chunk(file_stream, file_size, offset, upload_id) do |uploaded_bytes|
+              block.call(offset + uploaded_bytes)
+            end
 
-          offset = offset + uploaded_chunk_size
+            offset = offset + uploaded_chunk_size
+          rescue
+            puts "Failed to upload chunk with offset #{offset}. Retrying..."
+          end
         end
 
         upload_id
