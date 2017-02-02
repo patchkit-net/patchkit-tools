@@ -1,5 +1,14 @@
 #!/usr/bin/env ruby
 
+=begin
+$META_START$
+name: make-version
+summary: Builds, uploads and optionally publshes a new version.
+basic: true
+class: PatchKitTools::MakeVersionTool
+$META_END$
+=end
+
 require_relative 'lib/patchkit_tools.rb'
 require_relative 'content_version.rb'
 require_relative 'create_version.rb'

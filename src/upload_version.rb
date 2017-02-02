@@ -1,5 +1,14 @@
 #!/usr/bin/env ruby
 
+=begin
+$META_START$
+name: upload-version
+summary: Uploads new version by sending content or diff file.
+basic: false
+class: PatchKitTools::UploadVersionTool
+$META_END$
+=end
+
 require_relative 'lib/patchkit_api.rb'
 require_relative 'lib/patchkit_tools.rb'
 require 'rubygems'
@@ -75,7 +84,11 @@ module PatchKitTools
           "total_size_bytes" => file_size.to_s
         }
 
-        new_upload_resource_request = PatchKitAPI::ResourceRequest.new(new_upload_resource_name, new_upload_resource_form, Net::HTTP::Post)
+        new_upload_resource_request = PatchKitAPI::ResourceRequest.new(
+          new_upload_resource_name,
+          new_upload_resource_form,
+          Net::HTTP::Post
+        )
 
         upload_id = new_upload_resource_request.get_object["id"]
 

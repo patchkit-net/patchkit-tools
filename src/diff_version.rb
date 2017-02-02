@@ -1,5 +1,14 @@
 #!/usr/bin/env ruby
 
+=begin
+$META_START$
+name: diff-version
+summary: Creates version diff file from signatures.
+basic: false
+class: PatchKitTools::DiffVersionTool
+$META_END$
+=end
+
 require_relative 'lib/patchkit_api.rb'
 require_relative 'lib/patchkit_tools.rb'
 require_relative 'lib/patchkit_version_diff.rb'

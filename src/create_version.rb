@@ -1,5 +1,15 @@
 #!/usr/bin/env ruby
 
+
+=begin
+$META_START$
+name: create-version
+summary: Creates new version entry on the server.
+basic: false
+class: PatchKitTools::CreateVersionTool
+$META_END$
+=end
+
 require_relative 'lib/patchkit_api.rb'
 require_relative 'lib/patchkit_tools.rb'
 

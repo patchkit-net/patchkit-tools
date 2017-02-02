@@ -1,5 +1,14 @@
 #!/usr/bin/env ruby
 
+=begin
+$META_START$
+name: list-version
+summary: Lists application versions.
+basic: false
+class: PatchKitTools::ListVersionsTool
+$META_END$
+=end
+
 require_relative 'lib/patchkit_api.rb'
 require_relative 'lib/patchkit_tools.rb'
 

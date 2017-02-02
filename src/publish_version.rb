@@ -1,5 +1,14 @@
 #!/usr/bin/env ruby
 
+=begin
+$META_START$
+name: publish-version
+summary: Publishes version to the world.
+basic: false
+class: PatchKitTools::PublishVersionTool
+$META_END$
+=end
+
 require_relative 'lib/patchkit_api.rb'
 require_relative 'lib/patchkit_tools.rb'
 

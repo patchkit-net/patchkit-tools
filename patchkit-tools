@@ -1,27 +1,4 @@
 #!/bin/bash
 
-if ! [ -z "$1" ] && ! [ ${1:0:1} == "-" ]; then
-  tool=`dirname $0`/src/`basename $1 | tr - _`.rb
-else
-  tool=
-fi
-
-if ! [ -f "$tool" ] || [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
-  echo "Usage: patchkit-tools [tool_name] [tool_arguments]"
-  echo
-  echo "Tool help: patchkit-tools [tool_name] --help"
-  echo
-  echo "Available tools:"
-  find `dirname $0`/src/*.rb | xargs -n 1 --replace basename {} ".rb" | tr _ - | xargs -n 1 --replace echo "    {}"
-
-  echo
-  echo "Getting started: http://docs.patchkit.net/tools.html"
-  echo
-  exit 1
-else
-  ruby $tool "$@"
-
-  exit $?
-fi
-
+/usr/bin/env ruby -I. src/lib/bootstrap.rb "$@"
 
