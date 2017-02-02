@@ -1,6 +1,7 @@
 require 'optparse'
 require 'ostruct'
 require_relative 'file_helper.rb'
+require_relative 'patchkit_error.rb'
 
 module PatchKitTools
   def self.execute_tool(tool)
@@ -9,7 +10,7 @@ module PatchKitTools
       tool.execute
       puts "Done!"
       exit true
-    rescue => error
+    rescue CommandLineError, OptionParser::MissingArgument => error
       puts "ERROR: #{error}"
 
       if PatchKitConfig.debug
@@ -29,6 +30,9 @@ module PatchKitTools
       @program_name = program_name
       @program_description = program_description
       @program_usages = program_usages
+
+      @opts_used = []
+      @opts_required = []
     end
 
     # Parse options from command line
@@ -56,26 +60,31 @@ module PatchKitTools
 
         opts.separator ""
 
-        yield opts
-
-        opts.separator ""
-
-        opts.separator "Common"
-
-        opts.on("-h", "--help", "outputs a usage message and exit") do
-          puts opts
-          exit
-        end
-
-        opts.separator ""
       end
 
+      yield @opt_parser
+
+      @opt_parser.separator ""
+
+      @opt_parser.separator "Common"
+
+      @opt_parser.on("-h", "--help", "outputs a usage message and exit") do
+        puts @opt_parser
+        exit
+      end
+
+      @opt_parser.separator ""
+
       @opt_parser.parse!(ARGV)
+
+      @opts_required.each do |opt|
+        raise CommandLineError, "Missing required option --#{opt}" unless @opts_used.include? opt
+      end
     end
 
     def ask(question)
       print "#{question}: "
-      return STDIN.gets.strip
+      STDIN.gets.strip
     end
 
     def ask_yes_or_no(question, default)
@@ -87,9 +96,9 @@ module PatchKitTools
         result = default
       end
 
-      if(result == "y")
+      if result == "y"
         return true
-      elsif(result =="n")
+      elsif result =="n"
         return false
       end
 
@@ -106,29 +115,30 @@ module PatchKitTools
       check_if_option_exists(name)
     end
 
+    # Deprecated
     def check_if_option_exists(name)
-      raise "[--#{get_argument_name(name)}] Missing argument" if eval(name).nil? || (eval(name).is_a?(String) && eval(name).empty?)
+      raise CommandLineError, "[--#{get_argument_name(name)}] Missing argument" if eval(name).nil? || (eval(name).is_a?(String) && eval(name).empty?)
     end
 
     def check_if_valid_option_value(name, possible_values)
-      raise "[--#{get_argument_name(name)}] Invalid argument value" unless possible_values.include? eval(name)
+      raise CommandLineError, "[--#{get_argument_name(name)}] Invalid argument value" unless possible_values.include? eval(name)
     end
 
     def check_if_option_directory_exists(name)
       check_if_option_exists(name)
-      raise "[--#{get_argument_name(name)}] Directory doesn't exists - #{eval(name)}" unless File.exists?(eval(name))
-      raise "[--#{get_argument_name(name)}] Excepted argument to be a directory, not a file - #{eval(name)}" unless File.directory?(eval(name))
+      raise CommandLineError, "[--#{get_argument_name(name)}] Directory doesn't exists - #{eval(name)}" unless File.exists?(eval(name))
+      raise CommandLineError, "[--#{get_argument_name(name)}] Excepted argument to be a directory, not a file - #{eval(name)}" unless File.directory?(eval(name))
     end
 
     def check_if_option_file_exists_and_readable(name)
       check_if_option_exists(name)
-      raise "[--#{get_argument_name(name)}] File doesn't exists - #{eval(name)}" unless File.file?(eval(name))
-      raise "[--#{get_argument_name(name)}] File isn't readable - #{eval(name)}" unless File.readable?(eval(name))
+      raise CommandLineError, "[--#{get_argument_name(name)}] File doesn't exists - #{eval(name)}" unless File.file?(eval(name))
+      raise CommandLineError, "[--#{get_argument_name(name)}] File isn't readable - #{eval(name)}" unless File.readable?(eval(name))
     end
 
     def check_option_version_files_directory(name)
       check_if_option_directory_exists(name)
-      raise "[--#{get_argument_name(name)}] You've selected a directory that contains a single zip file #{eval(name)}. You need to pass a directory with unzipped files of your application." if FileHelper::only_zip_file_in_directory(eval(name))
+      raise CommandLineError, "[--#{get_argument_name(name)}] You've selected a directory that contains a single zip file #{eval(name)}. You need to pass a directory with unzipped files of your application." if FileHelper::only_zip_file_in_directory(eval(name))
     end
 
     # Alias to @source
@@ -136,9 +146,28 @@ module PatchKitTools
       @source.send(method, *args, &block)
     end
 
-  private
+    def option(name, **opts)
+      required = opts[:required] || raise('need to specify :required option')
+      letter = opts[:letter] || raise('need to specify :letter option')
+      description = opts[:description]
+      with_value = opts[:value] || false
+
+      @opt_parser.on(
+        "-#{letter}",
+        "--#{name}" + (with_value ? " <#{name}>" : ""),
+        description
+      ) do |value|
+        @opts_used << name.to_s
+        instance_variable_set("@#{name}", value) if with_value
+      end
+
+      @opts_required << name.to_s if required
+    end
+
+    private
+
     def get_argument_name(name)
-      name.gsub('_','')
+      name.delete('_')
     end
   end
 end

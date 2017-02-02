@@ -40,7 +40,7 @@ module PatchKitTools
 
         opts.separator "Optional"
 
-        opts.on("-a", "--apikey <api_key>",
+        opts.on("-a", "--apikey <apikey>",
           "user API key (when supplied draft version is also listed)") do |api_key|
           self.api_key = api_key
         end

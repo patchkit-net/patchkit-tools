@@ -1,5 +1,7 @@
 require_relative 'help'
 require_relative 'tools'
+require_relative 'patchkit_api.rb'
+require_relative 'patchkit_tools.rb'
 
 include PatchKitTools
 

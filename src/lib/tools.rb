@@ -4,19 +4,24 @@ module PatchKitTools
   # Tools manager
   class Tools
     def self.parse_all
-      parse_directory('src')
+      tools = parse_directory('src')
+
+      internal_dir = ENV['PK_TOOLS_INTERNAL']
+      tools.concat(parse_directory(internal_dir)) if !internal_dir.nil? && File.exist?(internal_dir)
     end
 
-    def self.parse_directory(path)
+    def self.parse_directory(path, **opts)
+      internal = opts[:internal] || false
       tools = []
 
       files = Dir["#{path}/*.rb"]
       files.each do |f|
         meta = read_meta_data(f)
-        cmd = parse_meta_data(meta, f)
+        tool = parse_meta_data(meta, f)
 
-        if !cmd.nil?
-          tools << cmd
+        if !tool.nil?
+          tool.internal = internal
+          tools << tool
         else
           puts "Warning: File #{f} does not have valid tool meta data"
         end
@@ -46,7 +51,7 @@ module PatchKitTools
       return nil if meta.nil? || meta.empty?
 
       yaml = YAML.load(meta)
-      tool = Tool.new
+      tool = ToolInfo.new
       tool.name = yaml['name']
       tool.summary = yaml['summary']
       tool.description = yaml['description']
@@ -61,7 +66,7 @@ module PatchKitTools
   end
 
   # Single command
-  class Tool
+  class ToolInfo
     attr_accessor :name
     attr_accessor :summary
     attr_accessor :description
@@ -69,6 +74,8 @@ module PatchKitTools
     alias basic? :basic
     attr_accessor :file
     attr_accessor :cl
+    attr_accessor :internal
+    alias internal? :basic
 
     def execute
       require @file
