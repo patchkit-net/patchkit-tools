@@ -53,22 +53,30 @@ module PatchKitAPI
 
     refresh_frequency = 1
 
+    last_progress = 0
+
     loop do
       start_time = Time.now
 
-      job_status = PatchKitAPI::ResourceRequest.new("1/background_jobs/#{job_guid}").get_object
+      begin
+        job_status = PatchKitAPI::ResourceRequest.new("1/background_jobs/#{job_guid}").get_object
 
-      status_message = job_status["status_message"]
-      status_message = "Pending" if job_status["pending"]
-      status_message = "Finished!" if job_status["finished"]
+        status_message = job_status["status_message"]
+        status_message = "Pending" if job_status["pending"]
+        status_message = "Finished!" if job_status["finished"]
 
-      progress_bar.print(job_status["progress"], status_message)
+        progress_bar.print(job_status["progress"], status_message)
 
-      if(job_status["finished"])
-        if(job_status["status"] != 0)
-          raise job_status["status_message"]
+        last_progress = job_status["progress"]
+
+        if(job_status["finished"])
+          if(job_status["status"] != 0)
+            raise job_status["status_message"]
+          end
+          break
         end
-        break
+      rescue
+        progress_bar.print(last_progress, "WARNING: Cannot retrieve job status")
       end
 
       sleep [[Time.now - start_time, 0].max, refresh_frequency].min

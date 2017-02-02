@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - Add command help command line to main help message
 - Support for internal tools by PK_TOOLS_INTERNAL environment variable.
+- Add more information and possible solution when selecting wrong application directory
+
+### Fixed
+- Fixed problems with uploading 
+- Improved uploading stability (in case of network failure the data is resent)
+- Improved displaying job status stability (in case of network failure the status is refetched)
+- Setting changelog when creating new version with make-version tool
 
 ## [0.9.2]
 ### Added
