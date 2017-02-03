@@ -148,17 +148,27 @@ module PatchKitTools
 
     def option(name, **opts)
       required = opts[:required] || raise('need to specify :required option')
-      letter = opts[:letter] || raise('need to specify :letter option')
+      letter = opts[:letter]
       description = opts[:description]
       with_value = opts[:value] || false
 
-      @opt_parser.on(
-        "-#{letter}",
-        "--#{name}" + (with_value ? " <#{name}>" : ""),
-        description
-      ) do |value|
-        @opts_used << name.to_s
-        instance_variable_set("@#{name}", value) if with_value
+      if letter.nil?
+        @opt_parser.on(
+          "--#{name}" + (with_value ? " <#{name}>" : ""),
+          description
+        ) do |value|
+          @opts_used << name.to_s
+          instance_variable_set("@#{name}", value) if with_value
+        end
+      else
+        @opt_parser.on(
+          "-#{letter}",
+          "--#{name}" + (with_value ? " <#{name}>" : ""),
+          description
+        ) do |value|
+          @opts_used << name.to_s
+          instance_variable_set("@#{name}", value) if with_value
+        end
       end
 
       @opts_required << name.to_s if required
