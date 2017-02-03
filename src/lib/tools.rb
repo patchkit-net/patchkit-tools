@@ -4,7 +4,8 @@ module PatchKitTools
   # Tools manager
   class Tools
     def self.parse_all
-      tools = parse_directory('src')
+      # it assumes that command files are one level up
+      tools = parse_directory(File.join(File.dirname(__FILE__), '..'))
 
       internal_dir = ENV['PK_TOOLS_INTERNAL']
       tools.concat(parse_directory(internal_dir)) if !internal_dir.nil? && File.exist?(internal_dir)

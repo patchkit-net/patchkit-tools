@@ -1,4 +1,5 @@
 #!/bin/bash
 
-/usr/bin/env ruby -I. src/lib/bootstrap.rb "$@"
+base_dir=`dirname $0`
+/usr/bin/env ruby -I${base_dir} ${base_dir}/src/lib/bootstrap.rb "$@"
 
