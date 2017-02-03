@@ -7,6 +7,10 @@ module PatchKitTools
   def self.execute_tool(tool)
     begin
       tool.parse_options
+      
+      # override api_url if --host has been provided
+      ::PatchKitAPI.api_url = "http://#{tool.host}/" if !tool.host.nil? && !tool.host.empty?
+
       tool.execute
       puts "Done!"
       exit true
@@ -25,12 +29,16 @@ module PatchKitTools
 
   # Base class for every tool
   class Tool
+    # keeps host name of should be overriden
+    attr_reader :host
+
     def initialize(program_name, program_description, *program_usages)
       @source = OpenStruct.new
       @program_name = program_name
       @program_description = program_description
       @program_usages = program_usages
 
+      @opts_defined = []
       @opts_used = []
       @opts_required = []
     end
@@ -67,6 +75,10 @@ module PatchKitTools
       @opt_parser.separator ""
 
       @opt_parser.separator "Common"
+
+      unless @opts_defined.include? :host
+        option('host', value: true, required: false, description: 'Hostname (format: patchkit.net)')
+      end
 
       @opt_parser.on("-h", "--help", "outputs a usage message and exit") do
         puts @opt_parser
@@ -147,7 +159,9 @@ module PatchKitTools
     end
 
     def option(name, **opts)
-      required = opts[:required] || raise('need to specify :required option')
+      required = opts[:required]
+      raise('need to specify :required option') if required.nil?
+
       letter = opts[:letter]
       description = opts[:description]
       with_value = opts[:value] || false
@@ -157,7 +171,7 @@ module PatchKitTools
           "--#{name}" + (with_value ? " <#{name}>" : ""),
           description
         ) do |value|
-          @opts_used << name.to_s
+          @opts_used << name.to_sym
           instance_variable_set("@#{name}", value) if with_value
         end
       else
@@ -166,12 +180,13 @@ module PatchKitTools
           "--#{name}" + (with_value ? " <#{name}>" : ""),
           description
         ) do |value|
-          @opts_used << name.to_s
+          @opts_used << name.to_sym
           instance_variable_set("@#{name}", value) if with_value
         end
       end
 
-      @opts_required << name.to_s if required
+      @opts_required << name.to_sym if required
+      @opts_defined << name.to_sym
     end
 
     private

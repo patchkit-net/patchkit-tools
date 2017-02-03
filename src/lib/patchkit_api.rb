@@ -4,8 +4,13 @@ require_relative 'progress_bar.rb'
 require_relative 'patchkit_config.rb'
 
 module PatchKitAPI
-  def self.get_resource_uri(resource_name)
-    URI.parse("#{PatchKitConfig.api_url}/#{resource_name}")
+  class << self
+    attr_accessor :api_url
+
+    def get_resource_uri(resource_name)
+      api_url = @api_url || PatchKitConfig.api_url
+      URI.parse("#{api_url}/#{resource_name}")
+    end
   end
 
   class ResourceRequest

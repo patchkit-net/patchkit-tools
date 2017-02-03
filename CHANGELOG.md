@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Add command help command line to main help message
 - Support for internal tools by PK_TOOLS_INTERNAL environment variable.
 - Add more information and possible solution when selecting wrong application directory
+- Allow to override backend --host using parameter
 
 ### Fixed
 - Fixed problems with uploading 
