@@ -188,6 +188,10 @@ module PatchKitTools
       ask_if_option_missing!("files")
       check_option_version_files_directory("files")
 
+      if Dir["#{self.files}/*"].empty?
+        raise CommandLineError, "Given directory #{self.files} is empty"
+      end
+
       versions_list = get_versions_list
 
       draft_version_id = nil

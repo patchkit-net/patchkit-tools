@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Improved uploading stability (in case of network failure the data is resent)
 - Improved displaying job status stability (in case of network failure the status is refetched)
 - Setting changelog when creating new version with make-version tool
+- make-version will stop execution if empty directory has been passed
 
 ## [0.9.2]
 ### Added
