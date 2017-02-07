@@ -9,6 +9,8 @@ module PatchKitTools
 
       internal_dir = ENV['PK_TOOLS_INTERNAL']
       tools.concat(parse_directory(internal_dir)) if !internal_dir.nil? && File.exist?(internal_dir)
+      
+      tools
     end
 
     def self.parse_directory(path, **opts)
