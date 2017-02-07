@@ -1,3 +1,9 @@
 @echo off
 
-ruby -I"%~dp0" "%~dp0\src\lib\bootstrap.rb" %*
+:: http://stackoverflow.com/questions/2952401/remove-trailing-slash-from-batch-file-input
+set current_dir=%~dp0
+IF %current_dir:~-1%==\ SET current_dir=%current_dir:~0,-1%
+
+ruby -I "%current_dir%" "%current_dir%\src\lib\bootstrap.rb" %*
+
+set current_dir=

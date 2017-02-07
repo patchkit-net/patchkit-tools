@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Improved displaying job status stability (in case of network failure the status is refetched)
 - Setting changelog when creating new version with make-version tool
 - make-version will stop execution if empty directory has been passed
+- Fixed problem with freezing tools at start on Windows
 - Fixed problem with starting tools when PK_TOOLS_INTERNAL environment variable wasn't set
 
 ## [0.9.2]
