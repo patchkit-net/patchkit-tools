@@ -14,7 +14,7 @@ module PatchKitTools
       tool.execute
       puts "Done!"
       exit true
-    rescue CommandLineError, OptionParser::MissingArgument => error
+    rescue APIJobError, CommandLineError, OptionParser::MissingArgument => error
       puts "ERROR: #{error}"
 
       if PatchKitConfig.debug

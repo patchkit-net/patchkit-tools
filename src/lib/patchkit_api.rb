@@ -60,24 +60,31 @@ module PatchKitAPI
 
     last_progress = 0
 
+    last_status_message = ""
+
+    last_status = 0
+
     loop do
       start_time = Time.now
 
       begin
         job_status = PatchKitAPI::ResourceRequest.new("1/background_jobs/#{job_guid}").get_object
 
-        status_message = job_status["status_message"]
-        status_message = "Pending" if job_status["pending"]
-        status_message = "Finished!" if job_status["finished"]
-
-        progress_bar.print(job_status["progress"], status_message)
-
         last_progress = job_status["progress"]
+        last_status = job_status["status"]
+
+        status_message = job_status["status_message"]
+        
+        if(last_status == 0)
+          status_message = "Pending" if job_status["pending"]
+          status_message = "Finished!" if job_status["finished"]
+        end
+
+        last_status_message = status_message
+
+        progress_bar.print(last_progress, last_status_message)
 
         if(job_status["finished"])
-          if(job_status["status"] != 0)
-            raise job_status["status_message"]
-          end
           break
         end
       rescue
@@ -86,5 +93,11 @@ module PatchKitAPI
 
       sleep [[Time.now - start_time, 0].max, refresh_frequency].min
     end
+
+    if(last_status != 0)
+      raise APIJobError, "#{last_status_message}. Please visit panel.patchkit.net for more information."
+    end
+
+    progress_bar.print(last_progress, last_status_message)
   end
 end

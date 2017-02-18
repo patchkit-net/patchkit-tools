@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - make-version will stop execution if empty directory has been passed
 - Fixed problem with freezing tools at start on Windows
 - Fixed problem with starting tools when PK_TOOLS_INTERNAL environment variable wasn't set
+- Fixed problems with freezing tools after issues with version processing
 
 ## [0.9.2]
 ### Added
