@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Support for internal tools by PK_TOOLS_INTERNAL environment variable.
 - Add more information and possible solution when selecting wrong application directory
 - Allow to override backend --host using parameter
+- Display processing errors at the end
 
 ### Fixed
 - Fixed problems with uploading 
@@ -20,6 +21,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed problem with freezing tools at start on Windows
 - Fixed problem with starting tools when PK_TOOLS_INTERNAL environment variable wasn't set
 - Fixed problems with freezing tools after issues with version processing
+
+### Changed
+- Version publishing flag is set before processing
 
 ## [0.9.2]
 ### Added

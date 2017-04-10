@@ -9,6 +9,8 @@ class: PatchKitTools::MakeVersionTool
 $META_END$
 =end
 
+require 'rest-client'
+
 require_relative 'lib/patchkit_tools.rb'
 require_relative 'content_version.rb'
 require_relative 'create_version.rb'
@@ -121,8 +123,10 @@ module PatchKitTools
         upload_version_content_tool.version = draft_version_id
         upload_version_content_tool.mode = "content"
         upload_version_content_tool.file = content_package
+        upload_version_content_tool.wait_for_job = false
 
         upload_version_content_tool.execute
+        @processing_job_guid = upload_version_content_tool.processing_job_guid
       ensure
         FileUtils.rm_rf(content_package)
       end
@@ -161,8 +165,10 @@ module PatchKitTools
           upload_version_content_tool.mode = "diff"
           upload_version_content_tool.file = diff_package
           upload_version_content_tool.diff_summary = diff_summary
+          upload_version_content_tool.wait_for_job = false
 
           upload_version_content_tool.execute
+          @processing_job_guid = upload_version_content_tool.processing_job_guid
         ensure
           FileUtils.rm_rf(diff_package)
           FileUtils.rm_rf(diff_summary)
@@ -172,13 +178,9 @@ module PatchKitTools
       end
     end
 
-    def publish_version(draft_version_id)
-      publish_version_tool = PatchKitTools::PublishVersionTool.new
-      publish_version_tool.secret = self.secret
-      publish_version_tool.api_key = self.api_key
-      publish_version_tool.version = draft_version_id
-
-      publish_version_tool.execute
+    def publish_version(version_id)
+      uri = PatchKitAPI.resource_uri("/1/apps/#{secret}/versions/#{version_id}").to_s
+      RestClient.patch uri, publish_when_processed: true, api_key: api_key
     end
 
     def execute
@@ -188,18 +190,14 @@ module PatchKitTools
       ask_if_option_missing!("files")
       check_option_version_files_directory("files")
 
-      if Dir["#{self.files}/*"].empty?
-        raise CommandLineError, "Given directory #{self.files} is empty"
+      if Dir["#{files}/*"].empty?
+        raise CommandLineError, "Given directory #{files} is empty"
       end
 
-      versions_list = get_versions_list
+      draft_version_id = fetch_draft_version_id
 
-      draft_version_id = nil
-
-      if(versions_list.length != 0 && versions_list[0]["draft"])
-        draft_version_id = versions_list[0]["id"]
-
-        if(!ask_yes_or_no("Draft version already exists. Its contents will be overwritten. Proceed?", "y"))
+      if !draft_version_id.nil?
+        if !ask_yes_or_no("Draft version already exists. Its contents will be overwritten. Proceed?", "y")
           exit
         end
       else
@@ -208,7 +206,7 @@ module PatchKitTools
 
       update_draft_version(draft_version_id)
 
-      if(draft_version_id == 1)
+      if draft_version_id == 1
         puts "There's no previous version. All of the files content will be uploaded"
 
         upload_version_content(draft_version_id)
@@ -216,19 +214,47 @@ module PatchKitTools
         upload_version_diff(draft_version_id)
       end
 
-      if(self.publish.nil?)
-        if(ask_yes_or_no("Do you want to publish the version?", "y"))
-          self.publish = "true"
-        end
+      if publish == "true"
+        publish_version(draft_version_id)
+        puts "This version will be published as soon as it gets processed."
       end
 
-      if(self.publish == "true")
-        publish_version(draft_version_id)
+      puts "Everything here is done! You're now safe to quit (CTRL+C) or close your console window."
+      puts
+      puts "Processing:"
+
+      PatchKitAPI.display_job_progress(@processing_job_guid)
+
+      validate_processed!(draft_version_id)
+    end
+
+    def fetch_draft_version_id
+      version_list = get_versions_list
+      return if version_list.empty?
+
+      draft_version = version_list.find { |e| e['draft'] }
+      return if draft_version.nil?
+      draft_version['id']
+    end
+
+    def validate_processed!(version_id)
+      json = PatchKitAPI.get("/1/apps/#{secret}/versions/#{version_id}", api_key: api_key)
+      
+      if json[:has_processing_error]
+        raise CommandLineError, "Version processing finished with processing error. "\
+                                "Please contact support at contact@patchkit.net."
+      end
+
+      errors = (json[:processing_messages] || [])
+               .select { |m| m[:severity] == 'error' }
+               .map { |m| m[:message] }
+      unless errors.empty?
+        raise CommandLineError, "Version processing failed:\n- #{errors.join("\n -")}"
       end
     end
   end
 end
 
 if $0 == __FILE__
-  PatchKitTools::execute_tool PatchKitTools::MakeVersionTool.new
+  PatchKitTools.execute_tool PatchKitTools::MakeVersionTool.new
 end

@@ -16,6 +16,9 @@ require 'bundler/setup'
 require 'net/http/uploadprogress'
 
 module PatchKitTools
+  # after successful upload, you can read the result job GUID here
+  attr_reader :processing_job_guid
+
   class UploadVersionTool < PatchKitTools::Tool
     UPLOAD_MODES = ["content", "diff"]
 
@@ -191,12 +194,13 @@ module PatchKitTools
       update_version_resource_request = PatchKitAPI::ResourceRequest.new(update_version_resource_name, update_version_resource_form, Net::HTTP::Put)
 
       update_version_resource_request.get_object do |object|
+        @processing_job_guid = object['job_guid']
         # Optionally wait for finish of version processing job
-        if(self.wait_for_job)
+        if self.wait_for_job
           puts "Waiting for finish of version processing job..."
 
           # Display job progress bar
-          PatchKitAPI.display_job_progress(object["job_guid"])
+          PatchKitAPI.display_job_progress(@processing_job_guid)
         end
       end
     end

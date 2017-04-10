@@ -1,5 +1,6 @@
 require 'net/http'
 require 'json'
+require 'rest-client'
 require_relative 'progress_bar.rb'
 require_relative 'patchkit_config.rb'
 
@@ -7,9 +8,21 @@ module PatchKitAPI
   class << self
     attr_accessor :api_url
 
+    # deprecated since 10.04.2017
     def get_resource_uri(resource_name)
+      resource_uri(resource_name)
+    end
+
+    def resource_uri(path)
       api_url = @api_url || PatchKitConfig.api_url
-      URI.parse("#{api_url}/#{resource_name}")
+      URI.parse("#{api_url}/#{path}")
+    end
+
+    # Preferred method of doing get calls
+    def get(path, **params)
+      uri = PatchKitAPI.resource_uri(path).to_s
+      r = RestClient.get uri, params: params
+      JSON.parse(r.body, symbolize_names: true)
     end
   end
 
@@ -68,33 +81,31 @@ module PatchKitAPI
       start_time = Time.now
 
       begin
-        job_status = PatchKitAPI::ResourceRequest.new("1/background_jobs/#{job_guid}").get_object
+        job_status = PatchKitAPI.get("1/background_jobs/#{job_guid}")
 
-        last_progress = job_status["progress"]
-        last_status = job_status["status"]
+        last_progress = job_status[:progress]
+        last_status = job_status[:status]
 
-        status_message = job_status["status_message"]
+        status_message = job_status[:status_message]
         
-        if(last_status == 0)
-          status_message = "Pending" if job_status["pending"]
-          status_message = "Finished!" if job_status["finished"]
+        if last_status.zero?
+          status_message = "Pending" if job_status[:pending]
+          status_message = "Done" if job_status[:finished]
         end
 
         last_status_message = status_message
 
         progress_bar.print(last_progress, last_status_message)
 
-        if(job_status["finished"])
-          break
-        end
+        break if job_status[:finished]
       rescue
-        progress_bar.print(last_progress, "WARNING: Cannot retrieve job status")
+        progress_bar.print(last_progress, "WARNING: Cannot read job status. Will try again...")
       end
 
       sleep [[Time.now - start_time, 0].max, refresh_frequency].min
     end
 
-    if(last_status != 0)
+    unless last_status.zero?
       raise APIJobError, "#{last_status_message}. Please visit panel.patchkit.net for more information."
     end
 

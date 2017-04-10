@@ -12,7 +12,6 @@ module PatchKitTools
       ::PatchKitAPI.api_url = "http://#{tool.host}/" if !tool.host.nil? && !tool.host.empty?
 
       tool.execute
-      puts "Done!"
       exit true
     rescue APIJobError, CommandLineError, OptionParser::MissingArgument => error
       puts "ERROR: #{error}"
