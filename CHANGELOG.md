@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed problem with freezing tools at start on Windows
 - Fixed problem with starting tools when PK_TOOLS_INTERNAL environment variable wasn't set
 - Fixed problems with freezing tools after issues with version processing
+- Fix make-version path slashes for make-version
 
 ### Changed
 - Version publishing flag is set before processing

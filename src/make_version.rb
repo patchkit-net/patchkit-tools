@@ -190,6 +190,9 @@ module PatchKitTools
       ask_if_option_missing!("files")
       check_option_version_files_directory("files")
 
+      # fix the path slashes
+      files.tr!('\\', '/')
+
       if Dir["#{files}/*"].empty?
         raise CommandLineError, "Given directory #{files} is empty"
       end
