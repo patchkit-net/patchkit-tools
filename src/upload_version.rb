@@ -128,7 +128,7 @@ module PatchKitTools
         request = PatchKitAPI::ResourceRequest.new(resource_name, form_data, Net::HTTP::Post)
 
         request.http_request['Content-Range'] =
-          "bytes #{offset}-#{offset + PatchKitConfig.upload_chunk_size.to_i - 1}/#{file_size}"
+          "bytes #{offset}-#{offset + File.size(chunk_file_name) - 1}/#{file_size}"
 
         Net::HTTP::UploadProgress.new(request.http_request) do |progress|
           yield progress.upload_size
