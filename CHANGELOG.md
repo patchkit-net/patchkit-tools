@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.0.2]
+### Fixed
+- Windows: dlls no longer dependent of VC Redistributable.
+
 ## [1.0.1]
 ### Added
 - Add command help command line to main help message
