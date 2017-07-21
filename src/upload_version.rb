@@ -14,6 +14,7 @@ require_relative 'lib/patchkit_tools.rb'
 require 'rubygems'
 require 'bundler/setup'
 require 'net/http/uploadprogress'
+require 'digest'
 
 module PatchKitTools
   # after successful upload, you can read the result job GUID here
@@ -104,8 +105,10 @@ module PatchKitTools
             end
 
             offset = offset + uploaded_chunk_size
-          rescue
-            puts "Failed to upload chunk with offset #{offset}. Retrying..."
+          rescue => e
+            puts "Failed to upload chunk with offset #{offset}, message: #{e.message}. Retrying..."
+            puts
+            puts
           end
         end
 
@@ -118,12 +121,18 @@ module PatchKitTools
     def upload_chunk(file_stream, file_size, offset, upload_id)
       chunk_file_name = "chunk_#{offset}"
 
+      # set the file position at current offset
+      file_stream.rewind
+      file_stream.seek(offset, IO::SEEK_CUR)
+
       File.open(chunk_file_name, 'wb') do |f|
         f.write file_stream.read(PatchKitConfig.upload_chunk_size)
       end
 
       File.open(chunk_file_name, 'rb') do |f|
-        form_data = { "chunk" => f }
+        md5 = Digest::MD5.file(chunk_file_name).hexdigest
+
+        form_data = { "chunk" => f, "md5" => md5 }
         resource_name = "1/uploads/#{upload_id}/chunk?api_key=#{api_key}"
         request = PatchKitAPI::ResourceRequest.new(resource_name, form_data, Net::HTTP::Post)
 

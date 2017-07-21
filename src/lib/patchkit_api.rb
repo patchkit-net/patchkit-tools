@@ -41,7 +41,7 @@ module PatchKitAPI
           if response.kind_of?(Net::HTTPSuccess)
             yield response if block_given?
           else
-            raise "[#{response.code}] #{response.msg} while requesting #{@url}"
+            raise "[#{response.code}] #{response.msg} while requesting #{@url}: #{response.body}"
           end
         end
       end
