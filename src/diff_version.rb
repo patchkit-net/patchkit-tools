@@ -65,7 +65,9 @@ module PatchKitTools
 
         puts "Creating diff..."
 
-        diff_summary = PatchKitVersionDiff::create_diff(self.files, temporary_signatures_directory, temporary_diff_directory, self.diff)
+        diff_summary = PatchKitVersionDiff.create_diff(
+          self.files, temporary_signatures_directory, temporary_diff_directory, self.diff
+        )
 
         puts "Saving diff summary..."
 
