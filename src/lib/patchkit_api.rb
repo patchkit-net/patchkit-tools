@@ -102,7 +102,9 @@ module PatchKitAPI
         progress_bar.print(last_progress, "WARNING: Cannot read job status. Will try again...")
       end
 
-      sleep [[Time.now - start_time, 0].max, refresh_frequency].min
+      request_time = Time.now - start_time
+      remaining_time = refresh_frequency - request_time
+      sleep [remaining_time, 0].max
     end
 
     unless last_status.zero?
