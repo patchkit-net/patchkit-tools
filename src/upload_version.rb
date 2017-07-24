@@ -175,7 +175,7 @@ module PatchKitTools
       upload_id = upload do |progress|
         current_upload_callback_time = Time.now.to_f
         if current_upload_callback_time - last_upload_callback_time > 0.5
-          progress_bar.print(progress, "Uploading #{(progress / 1024.0 / 1024.0).round(2)} MB out of #{(file_size / 1024.0 / 1024.0).round(2)} MB")
+          progress_bar.print(progress, "Uploading %.2f MB out of %.2f MB" % [progress / 1024.0 / 1024.0, file_size / 1024.0 / 1024.0])
           last_upload_callback_time = current_upload_callback_time
         end
       end
