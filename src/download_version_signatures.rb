@@ -51,22 +51,39 @@ module PatchKitTools
       check_if_option_exists("version")
       check_if_option_exists("output")
 
-      PatchKitAPI::ResourceRequest.new("1/apps/#{self.secret}/versions/#{self.version}/signatures?api_key=#{self.api_key}").get_response do |response|
-        file = File.open(self.output, 'wb')
-        begin
-          progress_bar = ProgressBar.new(response.content_length)
-          total_length = 0.0
-          response.read_body do |segment|
-            file.write segment
+      downloaded = 0
+      content_size = -1
+      progress_bar = nil
 
-            total_length += segment.length
-            progress_bar.print(total_length, "Downloading signature - #{(total_length / 1024.0 / 1024.0).round(2)} MB out of #{(response.content_length / 1024.0 / 1024.0).round(2)} MB")
+      while downloaded != content_size
+
+        PatchKitAPI::ResourceRequest.new("1/apps/#{self.secret}/versions/#{self.version}/signatures?api_key=#{self.api_key}").get_response do |response|
+          file = File.open(self.output, 'wb')
+          begin
+            content_size = response.content_length
+            progress_bar = ProgressBar.new(content_size)
+            downloaded = 0
+
+            response.read_body do |segment|
+              file.write segment
+
+              downloaded += segment.bytesize
+              progress_bar.print(downloaded, "Downloading signature - %.2f MB out of %.2f MB" % [downloaded / 1024.0 / 1024.0, content_size / 1024.0 / 1024.0])
+            end
+            
+          ensure
+            file.close
           end
-          progress_bar.print(response.content_length, "Signatures downloaded.")
-        ensure
-          file.close
+
+          if downloaded != content_size
+            puts "Error while downloading signatures. Will try again in 30 seconds..."
+            sleep 30
+          end
         end
-      end
+
+      end # while
+
+      progress_bar.print(content_size, "Signatures downloaded.")
     end
   end
 end
