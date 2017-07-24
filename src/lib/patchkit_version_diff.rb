@@ -28,11 +28,17 @@ module PatchKitVersionDiff
     begin
       FileUtils.mkdir_p temp_dir unless File.directory?(temp_dir)
 
-      content_files = FileHelper::list_relative(files_dir)
-      signature_files = FileHelper::list_relative(signatures_dir)
+      content_files = FileHelper.list_relative(files_dir)
+      signature_files = FileHelper.list_relative(signatures_dir)
       archive_files = {}
 
+      progress_bar = ProgressBar.new(content_files.size)
+
+      file_number = 0
       content_files.each do |content_file|
+        file_number += 1
+        progress_bar.print(file_number, "Processing file #{file_number} of #{content_files.size}")
+
         content_file_abs = File.join(files_dir, content_file)
 
         next unless File.file? content_file_abs
@@ -55,7 +61,12 @@ module PatchKitVersionDiff
         end
       end
 
+      progress_bar.print(content_files.size, "All files processed!")
+
+      puts "Zipping diff file..."
+      
       ZipHelper.zip(output_file, archive_files)
+      puts "Done!"
 
       return get_diff_summary(
         add_slashes_to_empty_dirs(files_dir, content_files),
