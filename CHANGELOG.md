@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+### Added
+- Creating diff operation now displays progress information
+
+### Fixed
+- Processing progress is now refreshed at constant 1 second interval
+- Downloading progress printing is now more stable
+- If signature download fails, it tries again after 30 seconds
+
 ## [1.1.0]
 ### Added
 - Chunks upload validation
