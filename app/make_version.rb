@@ -9,8 +9,6 @@ class: PatchKitTools::MakeVersionTool
 $META_END$
 =end
 
-require 'rest-client'
-
 require_relative 'lib/patchkit_tools.rb'
 require_relative 'content_version.rb'
 require_relative 'create_version.rb'

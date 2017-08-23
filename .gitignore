@@ -1,4 +1,5 @@
-*.sublime-project
-*.sublime-workspace
+/*.sublime-project
+/*.sublime-workspace
+/.rake_tasks~
 /.bundle/
 /.byebug_history

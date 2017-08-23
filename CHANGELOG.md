@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+### Changed
+- Change the way of deploying tools to packaging (with usage of *Traveling Ruby*)
+
 ## [1.2.0]
 ### Added
 - Creating diff operation now displays progress information
