@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Changed
 - Change the way of deploying tools to packaging (with usage of *Traveling Ruby*)
+- Get rid of rest-client dependency
 
 ## [1.2.0]
 ### Added

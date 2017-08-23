@@ -16,6 +16,24 @@ module PatchKitAPI
       api_url = @api_url || PatchKitConfig.api_url
       URI.parse("#{api_url}/#{path}")
     end
+
+    def get(path, **params)
+      resource_form = params.collect{|k,v| [k.to_s, v]}.to_h
+      r = PatchKitAPI::ResourceRequest.new(path, resource_form, Net::HTTP::Get).get_response
+      JSON.parse(r.body, symbolize_names: true)
+    end
+
+    def post(path, **params)
+      resource_form = params.collect{|k,v| [k.to_s, v]}.to_h
+      r = PatchKitAPI::ResourceRequest.new(path, resource_form, Net::HTTP::Post).get_response
+      JSON.parse(r.body, symbolize_names: true)
+    end
+
+    def patch(path, **params)
+      resource_form = params.collect{|k,v| [k.to_s, v]}.to_h
+      r = PatchKitAPI::ResourceRequest.new(path, resource_form, Net::HTTP::Patch).get_response
+      JSON.parse(r.body, symbolize_names: true)
+    end
   end
 
   class ResourceRequest

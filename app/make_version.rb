@@ -177,8 +177,8 @@ module PatchKitTools
     end
 
     def publish_version(version_id)
-      uri = PatchKitAPI.resource_uri("/1/apps/#{secret}/versions/#{version_id}").to_s
-      RestClient.patch uri, publish_when_processed: true, api_key: api_key
+      path = "/1/apps/#{secret}/versions/#{version_id}"
+      PatchKitAPI.patch path, publish_when_processed: "true", api_key: api_key
     end
 
     def execute
@@ -239,7 +239,7 @@ module PatchKitTools
     end
 
     def validate_processed!(version_id)
-      json = PatchKitAPI.get("/1/apps/#{secret}/versions/#{version_id}", api_key: api_key)
+      json = PatchKitAPI.get("/1/apps/#{secret}/versions/#{version_id}?api_key=#{api_key}")
       
       if json[:has_processing_error]
         raise CommandLineError, "Version processing finished with processing error. "\
