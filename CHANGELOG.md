@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.3.0]
+### Added
+- Version checking at the beginning of each patchkit-tools calls
+- Unit tests
+
 ## [1.2.0]
 ### Added
 - Creating diff operation now displays progress information

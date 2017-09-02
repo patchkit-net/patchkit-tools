@@ -3,8 +3,9 @@ require_relative 'tools'
 module PatchKitTools
   class Help
     def self.general
-      str = "Usage: patchkit-tools [tool_name] [tool_arguments]\n\n"
-      str << "Tool help: patchkit-tools [tool_name] --help\n\n"
+      str = "Usage:\n"
+      str << "    patchkit-tools TOOL [--help] [ARGS...]\n"
+      str << "    patchkit-tools [--help|--version]\n\n"
       str << "Basic tools:\n"
 
       tools = Tools.parse_all
