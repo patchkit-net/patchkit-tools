@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+### Fixed
+- Fix OS architecture detection
+
 ### Changed
 - Change the way of deploying tools to packaging (with usage of *Traveling Ruby*)
 - Get rid of rest-client dependency
