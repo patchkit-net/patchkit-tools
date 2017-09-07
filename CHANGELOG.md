@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Change the way of deploying tools to packaging (with usage of *Traveling Ruby*)
 - Get rid of rest-client dependency
 
+## [1.3.0]
+### Added
+- Version checking at the beginning of each patchkit-tools calls
+- Unit tests
+
 ## [1.2.0]
 ### Added
 - Creating diff operation now displays progress information

@@ -1,3 +1,4 @@
+require 'rake/testtask'
 # For Bundler.with_clean_env
 require 'bundler/setup'
 
@@ -105,4 +106,11 @@ def download_runtime(target)
 
   sh "cd #{RUBY_DIRECTORY} && curl -L -O --fail " +
     "http://d6r77u77i8pq3.cloudfront.net/releases/traveling-ruby-#{TRAVELING_RUBY_VERSION}-#{target}.tar.gz"
+end
+
+
+Rake::TestTask.new do |t|
+  t.libs << "tests"
+  t.test_files = FileList['tests/test*.rb']
+  t.verbose = true
 end
