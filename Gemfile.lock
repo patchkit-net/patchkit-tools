@@ -2,6 +2,9 @@ GEM
   remote: https://rubygems.org/
   specs:
     fiddle (1.0.0.beta1)
+    metaclass (0.0.4)
+    mocha (1.3.0)
+      metaclass (~> 0.0.1)
     net-http-uploadprogress (2.0.0)
     rake (12.0.0)
     rubyzip (1.2.1)
@@ -11,6 +14,7 @@ PLATFORMS
 
 DEPENDENCIES
   fiddle
+  mocha
   net-http-uploadprogress
   rake
   rubyzip
