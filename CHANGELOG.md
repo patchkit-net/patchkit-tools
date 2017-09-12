@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - Dot files (.*) were not included in diff summary causing processing to fail
 
+### Changed
+- Use Dir.mktmpdir for tools temporary files
+
 ## [1.3.0]
 ### Added
 - Version checking at the beginning of each patchkit-tools calls

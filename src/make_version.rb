@@ -108,13 +108,13 @@ module PatchKitTools
     end
 
     def upload_version_content(draft_version_id)
-      content_package = "#{self.secret}_content_#{draft_version_id}.zip"
+      Dir.mktmpdir do |temp_dir|
+        content_package = "#{temp_dir}/#{self.secret}_content_#{draft_version_id}.zip"
 
-      content_version_tool = PatchKitTools::ContentVersionTool.new
-      content_version_tool.files = self.files
-      content_version_tool.content = content_package
+        content_version_tool = PatchKitTools::ContentVersionTool.new
+        content_version_tool.files = self.files
+        content_version_tool.content = content_package
 
-      begin
         content_version_tool.execute
 
         upload_version_content_tool = PatchKitTools::UploadVersionTool.new
@@ -127,27 +127,25 @@ module PatchKitTools
 
         upload_version_content_tool.execute
         @processing_job_guid = upload_version_content_tool.processing_job_guid
-      ensure
-        FileUtils.rm_rf(content_package)
       end
     end
 
     def upload_version_diff(draft_version_id)
-      previous_version_id = draft_version_id - 1
+      Dir.mktmpdir do |temp_dir|
+        previous_version_id = draft_version_id - 1
 
-      signatures_package = "#{self.secret}_signatures_#{previous_version_id}.zip"
+        signatures_package = "#{temp_dir}/#{self.secret}_signatures_#{previous_version_id}.zip"
 
-      download_version_signatures_tool = PatchKitTools::DownloadVersionSignaturesTool.new
-      download_version_signatures_tool.secret = self.secret
-      download_version_signatures_tool.api_key = self.api_key
-      download_version_signatures_tool.version = previous_version_id
-      download_version_signatures_tool.output = signatures_package
+        download_version_signatures_tool = PatchKitTools::DownloadVersionSignaturesTool.new
+        download_version_signatures_tool.secret = self.secret
+        download_version_signatures_tool.api_key = self.api_key
+        download_version_signatures_tool.version = previous_version_id
+        download_version_signatures_tool.output = signatures_package
 
-      begin
         download_version_signatures_tool.execute
 
-        diff_package = "#{self.secret}_diff_#{previous_version_id}.zip"
-        diff_summary = "#{self.secret}_diff_summary_#{previous_version_id}.txt"
+        diff_package = "#{temp_dir}/#{self.secret}_diff_#{previous_version_id}.zip"
+        diff_summary = "#{temp_dir}/#{self.secret}_diff_summary_#{previous_version_id}.txt"
 
         diff_version_tool = PatchKitTools::DiffVersionTool.new
         diff_version_tool.signatures = signatures_package
@@ -155,26 +153,19 @@ module PatchKitTools
         diff_version_tool.diff = diff_package
         diff_version_tool.diff_summary = diff_summary
 
-        begin
-          diff_version_tool.execute
+        diff_version_tool.execute
 
-          upload_version_content_tool = PatchKitTools::UploadVersionTool.new
-          upload_version_content_tool.secret = self.secret
-          upload_version_content_tool.api_key = self.api_key
-          upload_version_content_tool.version = draft_version_id
-          upload_version_content_tool.mode = "diff"
-          upload_version_content_tool.file = diff_package
-          upload_version_content_tool.diff_summary = diff_summary
-          upload_version_content_tool.wait_for_job = false
+        upload_version_content_tool = PatchKitTools::UploadVersionTool.new
+        upload_version_content_tool.secret = self.secret
+        upload_version_content_tool.api_key = self.api_key
+        upload_version_content_tool.version = draft_version_id
+        upload_version_content_tool.mode = "diff"
+        upload_version_content_tool.file = diff_package
+        upload_version_content_tool.diff_summary = diff_summary
+        upload_version_content_tool.wait_for_job = false
 
-          upload_version_content_tool.execute
-          @processing_job_guid = upload_version_content_tool.processing_job_guid
-        ensure
-          FileUtils.rm_rf(diff_package)
-          FileUtils.rm_rf(diff_summary)
-        end
-      ensure
-        FileUtils.rm_rf(signatures_package)
+        upload_version_content_tool.execute
+        @processing_job_guid = upload_version_content_tool.processing_job_guid
       end
     end
 
