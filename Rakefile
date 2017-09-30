@@ -83,6 +83,13 @@ def create_package(target, os_type = :unix)
   sh "tar -xzf #{RUBY_DIRECTORY}/traveling-ruby-#{TRAVELING_RUBY_VERSION}-#{target}.tar.gz -C #{package_dir}/ruby"
   
   if os_type == :unix
+    # Hack to get paths containing spaces to behave correctly
+    # @see https://github.com/phusion/traveling-ruby/issues/38
+    sh %Q{sed -i 's|RUBYOPT=\\\\"-r$ROOT/lib/restore_environment\\\\"|RUBYOPT=\\\\"-rrestore_environment\\\\"|' '#{package_dir}/ruby/bin/ruby_environment'}
+    sh %Q{sed -i 's|GEM_HOME="$ROOT/lib/ruby/gems/2.1.0"|GEM_HOME=\\\\"$ROOT/lib/ruby/gems/2.1.0\\\\"|' '#{package_dir}/ruby/bin/ruby_environment'}
+    sh %Q{sed -i 's|GEM_PATH="$ROOT/lib/ruby/gems/2.1.0"|GEM_PATH=\\\\"$ROOT/lib/ruby/gems/2.1.0\\\\"|' '#{package_dir}/ruby/bin/ruby_environment'}
+    sh "mv #{package_dir}/ruby/lib/restore_environment.rb #{package_dir}/ruby/lib/ruby/2.1.0/restore_environment.rb"
+
     sh "cp packaging/patchkit-tools #{package_dir}/patchkit-tools"
   else
     sh "cp packaging/patchkit-tools.bat #{package_dir}/patchkit-tools.bat"
