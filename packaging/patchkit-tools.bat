@@ -9,6 +9,6 @@ set BUNDLE_GEMFILE=%current_dir%\vendor\Gemfile
 set BUNDLE_IGNORE_CONFIG=
 
 :: Run the actual app using the bundled Ruby interpreter, with Bundler activated.
-@"%current_dir%\ruby\bin\ruby.bat" -rbundler/setup "%current_dir%\app\lib\bootstrap.rb" %*
+@"%current_dir%\ruby\bin\ruby.bat" -W0 -rbundler/setup "%current_dir%\app\lib\bootstrap.rb" %*
 
 set current_dir=
