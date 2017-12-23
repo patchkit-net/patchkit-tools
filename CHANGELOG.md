@@ -11,6 +11,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - Use Dir.mktmpdir for tools temporary files
 
+## [2.0.0]
+
+### Fixed
+- Fix OS architecture detection
+
+### Changed
+- Change the way of deploying tools to packaging (with usage of *Traveling Ruby*)
+- Get rid of rest-client dependency
+
 ## [1.3.0]
 ### Added
 - Version checking at the beginning of each patchkit-tools calls

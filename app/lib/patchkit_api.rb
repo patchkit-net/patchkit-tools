@@ -1,6 +1,5 @@
 require 'net/http'
 require 'json'
-require 'rest-client'
 require_relative 'progress_bar.rb'
 require_relative 'patchkit_config.rb'
 
@@ -18,10 +17,21 @@ module PatchKitAPI
       URI.parse("#{api_url}/#{path}")
     end
 
-    # Preferred method of doing get calls
     def get(path, **params)
-      uri = PatchKitAPI.resource_uri(path).to_s
-      r = RestClient.get uri, params: params
+      resource_form = params.collect{|k,v| [k.to_s, v]}.to_h
+      r = PatchKitAPI::ResourceRequest.new(path, resource_form, Net::HTTP::Get).get_response
+      JSON.parse(r.body, symbolize_names: true)
+    end
+
+    def post(path, **params)
+      resource_form = params.collect{|k,v| [k.to_s, v]}.to_h
+      r = PatchKitAPI::ResourceRequest.new(path, resource_form, Net::HTTP::Post).get_response
+      JSON.parse(r.body, symbolize_names: true)
+    end
+
+    def patch(path, **params)
+      resource_form = params.collect{|k,v| [k.to_s, v]}.to_h
+      r = PatchKitAPI::ResourceRequest.new(path, resource_form, Net::HTTP::Patch).get_response
       JSON.parse(r.body, symbolize_names: true)
     end
   end
