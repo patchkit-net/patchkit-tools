@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+### Fixed
+- Dot files (.*) were not included in diff summary causing processing to fail
+
+### Changed
+- Use Dir.mktmpdir for tools temporary files
+
 ## [2.0.0]
 
 ### Fixed

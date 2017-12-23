@@ -3,7 +3,12 @@ module FileHelper
   def self.list_relative(dir)
     dir = dir.gsub('\\','/')
     dir_path = Pathname.new(dir)
-    Dir.glob("#{dir}/**/*").map do |e|
+    all_files = Dir.glob("#{dir}/**/*", File::FNM_DOTMATCH)
+    all_files = all_files.reject do |p|
+      p == '.' || p == '..' || p.end_with?('/.') || p.end_with?('/..')
+    end
+
+    all_files.map do |e|
       Pathname.new(e).relative_path_from(dir_path).to_s
     end
   end

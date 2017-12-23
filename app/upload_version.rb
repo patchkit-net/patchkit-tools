@@ -119,36 +119,36 @@ module PatchKitTools
     end
 
     def upload_chunk(file_stream, file_size, offset, upload_id)
-      chunk_file_name = "chunk_#{offset}"
+      Dir.mktmpdir do |temp_dir|
+        chunk_file_name = "#{temp_dir}/chunk_#{offset}"
 
-      # set the file position at current offset
-      file_stream.rewind
-      file_stream.seek(offset, IO::SEEK_CUR)
+        # set the file position at current offset
+        file_stream.rewind
+        file_stream.seek(offset, IO::SEEK_CUR)
 
-      File.open(chunk_file_name, 'wb') do |f|
-        f.write file_stream.read(PatchKitConfig.upload_chunk_size)
-      end
-
-      File.open(chunk_file_name, 'rb') do |f|
-        md5 = Digest::MD5.file(chunk_file_name).hexdigest
-
-        form_data = { "chunk" => f, "md5" => md5 }
-        resource_name = "1/uploads/#{upload_id}/chunk?api_key=#{api_key}"
-        request = PatchKitAPI::ResourceRequest.new(resource_name, form_data, Net::HTTP::Post)
-
-        request.http_request['Content-Range'] =
-          "bytes #{offset}-#{offset + File.size(chunk_file_name) - 1}/#{file_size}"
-
-        Net::HTTP::UploadProgress.new(request.http_request) do |progress|
-          yield progress.upload_size
+        File.open(chunk_file_name, 'wb') do |f|
+          f.write file_stream.read(PatchKitConfig.upload_chunk_size)
         end
 
-        request.get_response
-      end
+        File.open(chunk_file_name, 'rb') do |f|
+          md5 = Digest::MD5.file(chunk_file_name).hexdigest
 
-      File.size(chunk_file_name)
-    ensure
-      File.unlink(chunk_file_name) if File.exist?(chunk_file_name)
+          form_data = { "chunk" => f, "md5" => md5 }
+          resource_name = "1/uploads/#{upload_id}/chunk?api_key=#{api_key}"
+          request = PatchKitAPI::ResourceRequest.new(resource_name, form_data, Net::HTTP::Post)
+
+          request.http_request['Content-Range'] =
+            "bytes #{offset}-#{offset + File.size(chunk_file_name) - 1}/#{file_size}"
+
+          Net::HTTP::UploadProgress.new(request.http_request) do |progress|
+            yield progress.upload_size
+          end
+
+          request.get_response
+        end
+
+        File.size(chunk_file_name)
+      end
     end
 
     def execute

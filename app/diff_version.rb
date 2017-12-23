@@ -15,8 +15,6 @@ require_relative 'lib/patchkit_version_diff.rb'
 
 module PatchKitTools
   class DiffVersionTool < PatchKitTools::Tool
-    TEMPORARY_DIRECTORY = "diff_temporary"
-
     def initialize
       super("diff-version", "Creates version diff from previous version signatures zip and new version files.",
             "-s <signatures> -f <files> -d <diff> -m <diff_summary>")
@@ -55,9 +53,9 @@ module PatchKitTools
       check_if_option_exists("diff")
       check_if_option_exists("diff_summary")
 
-      begin
-        temporary_signatures_directory = "#{TEMPORARY_DIRECTORY}/signatures"
-        temporary_diff_directory = "#{TEMPORARY_DIRECTORY}/diff"
+      Dir.mktmpdir do |temp_dir|
+        temporary_signatures_directory = "#{temp_dir}/signatures"
+        temporary_diff_directory = "#{temp_dir}/diff"
 
         puts "Unpacking signatures..."
 
@@ -77,9 +75,6 @@ module PatchKitTools
         ensure
           diff_summary_file.close
         end
-      ensure
-        FileUtils.rm_rf temporary_signatures_directory
-        FileUtils.rm_rf temporary_diff_directory
       end
     end
   end
