@@ -71,7 +71,7 @@ module PatchKitTools
           self.changelog_file = changelog_file
         end
 
-        opts.on("-x", "--overwritedraft <true | false>",
+        opts.on("-x", "--overwrite-draft <true | false>",
           "should draft version be overwritten if it already exists (default: #{self.overwrite_draft})") do |overwrite_draft|
           self.overwrite_draft = overwrite_draft
         end
