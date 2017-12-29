@@ -16,6 +16,9 @@ class ProgressBar
 
       if @semaphore.try_lock
         console_width = IO.console.winsize[1]
+
+        return if console_width < 6
+
         if @lines_taken > 0
           $stdout.write "\e[1A\r"
           $stdout.write " " * @previous_status_length if @previous_status_length > status.length
