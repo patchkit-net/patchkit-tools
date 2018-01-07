@@ -28,7 +28,7 @@ class ProgressBar
 
         progress_bar_length = console_width - 5
         progress_length = (progress_bar_length.to_f * get_progress_value(progress)).round
-        if(progress_length == progress_bar_length)
+        if progress_length == progress_bar_length
           $stdout.write "|#{'=' * progress_length}|\n#{status}\n"
         else
           remaining_length = progress_bar_length - progress_length
@@ -46,6 +46,6 @@ class ProgressBar
   private
 
   def get_progress_value(progress)
-    return [[progress.to_f / @total.to_f, 0].max, 1].min
+    [[progress.to_f / @total.to_f, 0].max, 1].min
   end
 end
