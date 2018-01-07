@@ -13,7 +13,7 @@ require_relative 'lib/patchkit_api.rb'
 require_relative 'lib/patchkit_tools.rb'
 
 module PatchKitTools
-  class PublishVersionTool < PatchKitTools::Tool
+  class PublishVersionTool < PatchKitTools::BaseTool
     def initialize
       super("publish-version", "Publishes version.",
             "-s <secret> -a <api_key> -v <version>")

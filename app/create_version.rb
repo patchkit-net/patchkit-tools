@@ -14,7 +14,7 @@ require_relative 'lib/patchkit_api.rb'
 require_relative 'lib/patchkit_tools.rb'
 
 module PatchKitTools
-  class CreateVersionTool < PatchKitTools::Tool
+  class CreateVersionTool < PatchKitTools::BaseTool
     attr_reader :created_version_id
 
     def initialize

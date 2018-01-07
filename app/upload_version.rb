@@ -20,7 +20,7 @@ module PatchKitTools
   # after successful upload, you can read the result job GUID here
   attr_reader :processing_job_guid
 
-  class UploadVersionTool < PatchKitTools::Tool
+  class UploadVersionTool < PatchKitTools::BaseTool
     UPLOAD_MODES = ["content", "diff"]
 
     def initialize
