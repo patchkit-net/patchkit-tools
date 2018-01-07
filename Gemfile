@@ -3,6 +3,8 @@ gem 'net-http-uploadprogress'
 gem 'rubyzip'
 gem 'fiddle'
 gem 'mocha'
+gem 'byebug'
+gem 'test-unit'
 
 group :development do
   gem 'rake'
