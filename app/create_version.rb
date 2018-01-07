@@ -10,8 +10,8 @@ class: PatchKitTools::CreateVersionTool
 $META_END$
 =end
 
-require_relative 'lib/patchkit_api.rb'
-require_relative 'lib/patchkit_tools.rb'
+require_relative 'core/patchkit_api.rb'
+require_relative 'core/patchkit_tools.rb'
 
 module PatchKitTools
   class CreateVersionTool < PatchKitTools::BaseTool

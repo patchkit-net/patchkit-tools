@@ -9,7 +9,7 @@ class: PatchKitTools::MakeVersionTool
 $META_END$
 =end
 
-require_relative 'lib/patchkit_tools.rb'
+require_relative 'core/patchkit_tools.rb'
 require_relative 'content_version.rb'
 require_relative 'create_version.rb'
 require_relative 'diff_version.rb'
