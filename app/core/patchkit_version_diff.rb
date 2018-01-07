@@ -1,6 +1,6 @@
-require_relative 'librsync.rb'
-require_relative 'zip_helper.rb'
-require_relative 'file_helper.rb'
+require_relative 'utils/librsync.rb'
+require_relative 'utils/zip_helper.rb'
+require_relative 'utils/file_helper.rb'
 
 module PatchKitVersionDiff
   def self.get_diff_summary(content_files, signature_files, output_file_size)

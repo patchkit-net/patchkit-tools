@@ -1,6 +1,6 @@
 require 'net/http'
 require 'json'
-require_relative 'progress_bar.rb'
+require_relative 'utils/progress_bar.rb'
 require_relative 'patchkit_config.rb'
 
 module PatchKitAPI

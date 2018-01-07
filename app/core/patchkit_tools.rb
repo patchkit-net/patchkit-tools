@@ -1,6 +1,6 @@
 require 'optparse'
 require 'ostruct'
-require_relative 'file_helper.rb'
+require_relative 'utils/file_helper.rb'
 require_relative 'patchkit_error.rb'
 
 module PatchKitTools
