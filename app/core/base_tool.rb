@@ -32,7 +32,7 @@ module PatchKitTools
 
         opts.separator "Usage:"
 
-        for program_usage in @program_usages
+        @program_usages.each do |program_usage|
           opts.separator opts.summary_indent + "patchkit-tools #{@program_name} #{program_usage}"
         end
 
