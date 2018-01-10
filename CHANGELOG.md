@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.3.0]
+### Added
+- Ability to use draft version in publish_version (--draft parameter)
+- Ability to wait until version is published (--wait_for_published)
+
+### Fixed
+- Fix for displaying progress bar on narrow console windows
+
 ## [2.2.0]
 ### Added
 - Ability to automatically overwrite draft version in make-version tool
