@@ -1,6 +1,6 @@
 require 'net/http'
 require 'json'
-require_relative 'progress_bar.rb'
+require_relative 'utils/progress_bar.rb'
 require_relative 'patchkit_config.rb'
 
 module PatchKitAPI
@@ -122,5 +122,42 @@ module PatchKitAPI
     end
 
     progress_bar.print(last_progress, last_status_message)
+  end
+
+  def self.wait_until_version_published(secret, version_id)
+    progress_bar = ProgressBar.new(1.0)
+
+    refresh_frequency = 1
+
+    last_progress = 0
+    last_published = false
+
+    loop do
+      start_time = Time.now
+
+      begin
+        job_status = PatchKitAPI.get("1/apps/#{secret}/versions/#{version_id}")
+
+        last_progress = job_status[:publish_progress]
+        last_published = job_status[:published]
+
+        break if job_status[:published]
+        break unless job_status[:pending_publish]
+
+        progress_bar.print(last_progress, "Publishing...")
+      rescue
+        progress_bar.print(last_progress, "WARNING: Cannot read publishing status. Will try again...")
+      end
+
+      request_time = Time.now - start_time
+      remaining_time = refresh_frequency - request_time
+      sleep [remaining_time, 0].max
+    end
+
+    unless last_published
+      raise APIPublishError, "Unable to publish version. Please visit panel.patchkit.net for more information."
+    end
+
+    progress_bar.print(last_progress, "Version has been published!")
   end
 end

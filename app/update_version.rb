@@ -9,11 +9,11 @@ class: PatchKitTools::UpdateVersionTool
 $META_END$
 =end
 
-require_relative 'lib/patchkit_api.rb'
-require_relative 'lib/patchkit_tools.rb'
+require_relative 'core/patchkit_api.rb'
+require_relative 'core/patchkit_tools.rb'
 
 module PatchKitTools
-  class UpdateVersionTool < PatchKitTools::Tool
+  class UpdateVersionTool < PatchKitTools::BaseTool
     def initialize
       super("update-version", "Updates properties of the version.",
             "-s <secret> -a <api_key> -v <version> [properties]")

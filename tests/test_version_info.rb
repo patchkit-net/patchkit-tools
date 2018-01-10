@@ -1,5 +1,5 @@
 require_relative 'test_helper'
-require_relative '../src/lib/version_info'
+require_relative '../app/core/version_info'
 
 class ChangelogTest < Test::Unit::TestCase
   def test_latest

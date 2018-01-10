@@ -5,4 +5,4 @@ set -e
 SELFDIR="`dirname \"$0\"`"
 SELFDIR="`cd \"$SELFDIR\" && pwd`"
 
-exec ruby "$SELFDIR/app/lib/bootstrap.rb" "$@"
+exec ruby "$SELFDIR/app/core/bootstrap.rb" "$@"

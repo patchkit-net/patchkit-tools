@@ -9,7 +9,7 @@ class: PatchKitTools::MakeVersionTool
 $META_END$
 =end
 
-require_relative 'lib/patchkit_tools.rb'
+require_relative 'core/patchkit_tools.rb'
 require_relative 'content_version.rb'
 require_relative 'create_version.rb'
 require_relative 'diff_version.rb'
@@ -20,7 +20,7 @@ require_relative 'update_version.rb'
 require_relative 'upload_version.rb'
 
 module PatchKitTools
-  class MakeVersionTool < PatchKitTools::Tool
+  class MakeVersionTool < PatchKitTools::BaseTool
     def initialize
       super("make-version", "Creates and uploads a complete version with optional publishing.",
             "[-s <secret>] [-a <api_key>] [-l <label>] [-f <files>] [-c <changelog>]")

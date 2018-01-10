@@ -1,34 +1,7 @@
-require 'optparse'
-require 'ostruct'
-require_relative 'file_helper.rb'
-require_relative 'patchkit_error.rb'
+# Base class for every tool
 
 module PatchKitTools
-  def self.execute_tool(tool)
-    begin
-      tool.parse_options
-      
-      # override api_url if --host has been provided
-      ::PatchKitAPI.api_url = "http://#{tool.host}/" if !tool.host.nil? && !tool.host.empty?
-
-      tool.execute
-      exit true
-    rescue APIJobError, CommandLineError, OptionParser::MissingArgument => error
-      puts "ERROR: #{error}"
-
-      if PatchKitConfig.debug
-        puts error.backtrace
-        puts "Press return to continue..."
-        STDIN.gets
-      end
-
-      exit false
-    end
-  end
-
-  # Base class for every tool
-  class Tool
-    # keeps host name of should be overriden
+  class BaseTool
     attr_reader :host
 
     def initialize(program_name, program_description, *program_usages)
@@ -53,17 +26,17 @@ module PatchKitTools
 
         opts.separator "Description:"
 
-        opts.separator opts.summary_indent+@program_description
+        opts.separator opts.summary_indent + @program_description
 
         opts.separator ""
 
         opts.separator "Usage:"
 
-        for program_usage in @program_usages
-          opts.separator opts.summary_indent+"patchkit-tools #{@program_name} #{program_usage}"
+        @program_usages.each do |program_usage|
+          opts.separator opts.summary_indent + "patchkit-tools #{@program_name} #{program_usage}"
         end
 
-        opts.separator opts.summary_indent+"patchkit-tools #{@program_name} --help"
+        opts.separator opts.summary_indent + "patchkit-tools #{@program_name} --help"
 
         opts.separator ""
 
@@ -103,13 +76,13 @@ module PatchKitTools
       result = ask(question + " " + (default == "y" ? "(Y/n)" : (default == "n" ? "(y/N)" : "(y/n)")))
       result.downcase!
 
-      if((default == "y" || default == "n") && (result.nil? || result.empty?))
+      if ((default == "y" || default == "n") && (result.nil? || result.empty?))
         result = default
       end
 
       if result == "y"
         return true
-      elsif result =="n"
+      elsif result == "n"
         return false
       end
 
@@ -167,17 +140,17 @@ module PatchKitTools
 
       if letter.nil?
         @opt_parser.on(
-          "--#{name}" + (with_value ? " <#{name}>" : ""),
-          description
+            "--#{name}" + (with_value ? " <#{name}>" : ""),
+            description
         ) do |value|
           @opts_used << name.to_sym
           instance_variable_set("@#{name}", value) if with_value
         end
       else
         @opt_parser.on(
-          "-#{letter}",
-          "--#{name}" + (with_value ? " <#{name}>" : ""),
-          description
+            "-#{letter}",
+            "--#{name}" + (with_value ? " <#{name}>" : ""),
+            description
         ) do |value|
           @opts_used << name.to_sym
           instance_variable_set("@#{name}", value) if with_value

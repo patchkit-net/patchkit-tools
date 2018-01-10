@@ -9,8 +9,8 @@ class: PatchKitTools::UploadVersionTool
 $META_END$
 =end
 
-require_relative 'lib/patchkit_api.rb'
-require_relative 'lib/patchkit_tools.rb'
+require_relative 'core/patchkit_api.rb'
+require_relative 'core/patchkit_tools.rb'
 require 'rubygems'
 require 'bundler/setup'
 require 'net/http/uploadprogress'
@@ -20,7 +20,7 @@ module PatchKitTools
   # after successful upload, you can read the result job GUID here
   attr_reader :processing_job_guid
 
-  class UploadVersionTool < PatchKitTools::Tool
+  class UploadVersionTool < PatchKitTools::BaseTool
     UPLOAD_MODES = ["content", "diff"]
 
     def initialize

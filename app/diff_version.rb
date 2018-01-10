@@ -9,12 +9,12 @@ class: PatchKitTools::DiffVersionTool
 $META_END$
 =end
 
-require_relative 'lib/patchkit_api.rb'
-require_relative 'lib/patchkit_tools.rb'
-require_relative 'lib/patchkit_version_diff.rb'
+require_relative 'core/patchkit_api.rb'
+require_relative 'core/patchkit_tools.rb'
+require_relative 'core/patchkit_version_diff.rb'
 
 module PatchKitTools
-  class DiffVersionTool < PatchKitTools::Tool
+  class DiffVersionTool < PatchKitTools::BaseTool
     def initialize
       super("diff-version", "Creates version diff from previous version signatures zip and new version files.",
             "-s <signatures> -f <files> -d <diff> -m <diff_summary>")
