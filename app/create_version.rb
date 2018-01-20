@@ -68,7 +68,9 @@ module PatchKitTools
 
       puts "Creating version..."
 
-      result = PatchKitAPI::ResourceRequest.new(resource_name, resource_form, Net::HTTP::Post).get_object
+      request = PatchKitAPI::ResourceRequest.new(resource_name, Net::HTTP::Post)
+      request.form = resource_form
+      result = request.get_object
 
       @created_version_id = result["id"]
 

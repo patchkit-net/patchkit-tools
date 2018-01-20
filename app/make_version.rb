@@ -169,7 +169,7 @@ module PatchKitTools
 
     def publish_version(version_id)
       path = "/1/apps/#{secret}/versions/#{version_id}"
-      PatchKitAPI.patch path, publish_when_processed: "true", api_key: api_key
+      PatchKitAPI.patch path, params: { publish_when_processed: "true", api_key: api_key }
     end
 
     def execute

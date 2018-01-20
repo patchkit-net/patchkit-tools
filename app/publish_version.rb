@@ -49,7 +49,7 @@ module PatchKitTools
 
       puts "Publishing version..."
 
-      PatchKitAPI::ResourceRequest.new(resource_name, nil, Net::HTTP::Put).get_object do |object|
+      PatchKitAPI::ResourceRequest.new(resource_name, Net::HTTP::Put).get_object do |object|
         puts "Version has been published!"
       end
     end

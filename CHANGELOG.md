@@ -6,10 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Fixed
-- Dot files (.*) were not included in diff summary causing processing to fail
+- Dot files (.\*) were not included in diff summary causing processing to fail
 
 ### Changed
 - Use Dir.mktmpdir for tools temporary files
+- Upload-version tool is now using S3 upload method
 
 ## [2.0.0]
 

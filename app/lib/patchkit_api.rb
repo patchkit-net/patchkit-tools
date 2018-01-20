@@ -18,36 +18,48 @@ module PatchKitAPI
     end
 
     def get(path, **params)
-      resource_form = params.collect{|k,v| [k.to_s, v]}.to_h
-      r = PatchKitAPI::ResourceRequest.new(path, resource_form, Net::HTTP::Get).get_response
-      JSON.parse(r.body, symbolize_names: true)
+      req = PatchKitAPI::ResourceRequest.new(path, Net::HTTP::Get)
+      process_request(req, params)
     end
 
     def post(path, **params)
-      resource_form = params.collect{|k,v| [k.to_s, v]}.to_h
-      r = PatchKitAPI::ResourceRequest.new(path, resource_form, Net::HTTP::Post).get_response
-      JSON.parse(r.body, symbolize_names: true)
+      req = PatchKitAPI::ResourceRequest.new(path, Net::HTTP::Post)
+      process_request(req, params)
     end
 
     def patch(path, **params)
-      resource_form = params.collect{|k,v| [k.to_s, v]}.to_h
-      r = PatchKitAPI::ResourceRequest.new(path, resource_form, Net::HTTP::Patch).get_response
-      JSON.parse(r.body, symbolize_names: true)
+      req = PatchKitAPI::ResourceRequest.new(path, Net::HTTP::Patch)
+      process_request(req, params)
+    end
+
+    def process_request(request, params)
+      request.form = params[:params].collect{ |k, v| [k.to_s, v.to_s]}.to_h if params.include? :params
+      request.headers = params[:headers].collect{ |k, v| [k.to_s, v.to_s]}.to_h if params.include? :headers
+
+      response = request.get_response
+      JSON.parse(response.body, symbolize_names: true)
     end
   end
 
   class ResourceRequest
     attr_reader :http_request
+    attr_accessor :headers
+    attr_accessor :form
 
-    def initialize(resource_name, resource_form = nil, resource_method = Net::HTTP::Get)
-      @url = PatchKitAPI.get_resource_uri(resource_name)
-      @http_request = resource_method.new(@url)
-      @http_request.set_form(resource_form, "multipart/form-data") if not resource_form.nil?
+    def initialize(resource_name, resource_method = Net::HTTP::Get)
+      @url = PatchKitAPI.resource_uri(resource_name)
+      @resource_method = resource_method
+      @headers = {}
+      @form = {}
     end
 
     def get_response
+      http_request = @resource_method.new(@url)
+      http_request.set_form(@form, "multipart/form-data") if not @form.nil?
+      @headers.each { |key, value| http_request[key] = value }
+
       Net::HTTP.start(@url.host, @url.port) do |http|
-        http.request(@http_request) do |response|
+        http.request(http_request) do |response|
           if response.kind_of?(Net::HTTPSuccess)
             yield response if block_given?
           else
