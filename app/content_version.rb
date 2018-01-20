@@ -9,12 +9,12 @@ class: PatchKitTools::ContentVersionTool
 $META_END$
 =end
 
-require_relative 'lib/patchkit_api.rb'
-require_relative 'lib/patchkit_tools.rb'
-require_relative 'lib/patchkit_version_content.rb'
+require_relative 'core/patchkit_api.rb'
+require_relative 'core/patchkit_tools.rb'
+require_relative 'core/patchkit_version_content.rb'
 
 module PatchKitTools
-  class ContentVersionTool < PatchKitTools::Tool
+  class ContentVersionTool < PatchKitTools::BaseTool
     def initialize
       super("content-version", "Creates version content from new version files.",
             "-f <files> -c <content>")

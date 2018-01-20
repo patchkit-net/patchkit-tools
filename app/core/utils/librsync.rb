@@ -82,7 +82,7 @@ module Librsync
   end
 
   def self.get_lib_path
-    return "#{File.dirname(__FILE__)}/#{get_lib_name}"
+    return "#{File.dirname(__FILE__)}/../../#{get_lib_name}"
   end
 
   public

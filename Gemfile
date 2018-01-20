@@ -5,6 +5,7 @@ gem 'fiddle'
 gem 'mocha'
 
 group :development do
+  gem 'test-unit'
   gem 'rake'
   gem 'byebug'
 end

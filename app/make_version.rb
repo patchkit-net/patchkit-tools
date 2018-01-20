@@ -9,7 +9,7 @@ class: PatchKitTools::MakeVersionTool
 $META_END$
 =end
 
-require_relative 'lib/patchkit_tools.rb'
+require_relative 'core/patchkit_tools.rb'
 require_relative 'content_version.rb'
 require_relative 'create_version.rb'
 require_relative 'diff_version.rb'
@@ -20,10 +20,12 @@ require_relative 'update_version.rb'
 require_relative 'upload_version.rb'
 
 module PatchKitTools
-  class MakeVersionTool < PatchKitTools::Tool
+  class MakeVersionTool < PatchKitTools::BaseTool
     def initialize
       super("make-version", "Creates and uploads a complete version with optional publishing.",
             "[-s <secret>] [-a <api_key>] [-l <label>] [-f <files>] [-c <changelog>]")
+      self.publish = "false"
+      self.overwrite_draft = "false"
     end
 
     def parse_options
@@ -67,6 +69,11 @@ module PatchKitTools
         opts.on("-z", "--changelogfile <changelog_file>",
           "text file with version changelog") do |changelog_file|
           self.changelog_file = changelog_file
+        end
+
+        opts.on("-x", "--overwrite-draft <true | false>",
+          "should draft version be overwritten if it already exists (default: #{self.overwrite_draft})") do |overwrite_draft|
+          self.overwrite_draft = overwrite_draft
         end
       end
     end
@@ -189,7 +196,7 @@ module PatchKitTools
       draft_version_id = fetch_draft_version_id
 
       if !draft_version_id.nil?
-        if !ask_yes_or_no("Draft version already exists. Its contents will be overwritten. Proceed?", "y")
+        if self.overwrite_draft != "true" && !ask_yes_or_no("Draft version already exists. Its contents will be overwritten. Proceed?", "y")
           exit
         end
       else
@@ -206,7 +213,7 @@ module PatchKitTools
         upload_version_diff(draft_version_id)
       end
 
-      if publish == "true"
+      if self.publish == "true"
         publish_version(draft_version_id)
         puts "This version will be published as soon as it gets processed."
       end

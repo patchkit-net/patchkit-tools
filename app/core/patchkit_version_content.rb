@@ -1,5 +1,5 @@
-require_relative 'zip_helper.rb'
-require_relative 'file_helper.rb'
+require_relative 'utils/zip_helper.rb'
+require_relative 'utils/file_helper.rb'
 
 module PatchKitVersionContent
   def self.create_content(files_dir, output_file)

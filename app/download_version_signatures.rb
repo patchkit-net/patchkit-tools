@@ -9,11 +9,11 @@ class: PatchKitTools::DownloadVersionSignaturesTool
 $META_END$
 =end
 
-require_relative 'lib/patchkit_api.rb'
-require_relative 'lib/patchkit_tools.rb'
+require_relative 'core/patchkit_api.rb'
+require_relative 'core/patchkit_tools.rb'
 
 module PatchKitTools
-  class DownloadVersionSignaturesTool < PatchKitTools::Tool
+  class DownloadVersionSignaturesTool < PatchKitTools::BaseTool
     def initialize
       super("download-version-signatures", "Downloads version signatures package.",
             "-s <secret> -a <api_key> -v <version> -o <output>")

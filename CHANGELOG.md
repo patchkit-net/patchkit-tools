@@ -4,16 +4,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## Unreleased
+### Changed
+- Upload-version tool is now using S3 upload method
+
+## [2.3.0]
+### Added
+- Ability to use draft version in publish_version (--draft parameter)
+- Ability to wait until version is published (--wait_for_published)
+
 ### Fixed
 - Dot files (.\*) were not included in diff summary causing processing to fail
+- Fix for displaying progress bar on narrow console windows
+
+## [2.2.0]
+### Added
+- Ability to automatically overwrite draft version in make-version tool
+
+## [2.1.0]
+### Fixed
+- Dot files (.\*) were not included in diff summary causing processing to 
 
 ### Changed
 - Use Dir.mktmpdir for tools temporary files
-- Upload-version tool is now using S3 upload method
 
 ## [2.0.0]
-
 ### Fixed
 - Fix OS architecture detection
 
