@@ -27,62 +27,72 @@ module Librsync
     end
   end
 
-  def self.is_windows?
+  def self.windows?
     ((/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM) != nil)
   end
 
-  def self.is_windows_32bit?
-    is_windows? && bits == 32
+  def self.windows_32bit?
+    windows? && bits == 32
   end
 
-  def self.is_windows_64bit?
-    is_windows? && bits == 64
+  def self.windows_64bit?
+    windows? && bits == 64
   end
 
-  def self.is_mac_osx?
+  def self.mac_osx?
     ((/darwin/ =~ RUBY_PLATFORM) != nil)
   end
 
-  def self.is_mac_osx_32bit?
-    is_mac_osx? && bits == 32
+  def self.mac_osx_32bit?
+    mac_osx? && bits == 32
   end
 
-  def self.is_mac_osx_64bit?
-    is_mac_osx? && bits == 64
+  def self.mac_osx_64bit?
+    mac_osx? && bits == 64
   end
 
-  def self.is_linux?
-    !is_windows? && !is_mac_osx?
+  def self.linux?
+    !windows? && !mac_osx?
   end
 
-  def self.is_linux_32bit?
-    is_linux? && bits == 32
+  def self.linux_32bit?
+    linux? && bits == 32
   end
 
-  def self.is_linux_64bit?
-    is_linux? && bits == 64
+  def self.linux_64bit?
+    linux? && bits == 64
   end
 
-  def self.get_lib_name
-    if self.is_windows_32bit?
+  def self.lib_name
+    if windows_32bit?
       "x86/rsync.dll"
-    elsif self.is_windows_64bit?
+    elsif windows_64bit?
       "x86_64/rsync.dll"
-    elsif self.is_mac_osx_32bit?
+    elsif mac_osx_32bit?
       raise "Unsupported librsync platform - Mac OSX (32-bit)"
-    elsif self.is_mac_osx_64bit?
+    elsif mac_osx_64bit?
       "x86_64/rsync.bundle"
-    elsif self.is_linux_32bit?
+    elsif linux_32bit?
       "x86/librsync.so"
-    elsif self.is_linux_64bit?
+    elsif linux_64bit?
       "x86_64/librsync.so"
     else
       raise "Unsupported librsync platform - Unknown"
     end
   end
 
-  def self.get_lib_path
-    return "#{File.dirname(__FILE__)}/../../#{get_lib_name}"
+  def self.lib_path
+    search_dirs = [
+      "#{File.dirname(__FILE__)}/../../",
+      "#{File.dirname(__FILE__)}/../../bin"
+    ]
+
+    search_dirs.each do |search_dir|
+      path = File.join("#{search_dir}", lib_name)
+      return path if File.exist? path
+    end
+
+    raise "Cannot find library: #{lib_name}, search_dirs: #{search_dirs}"
   end
 
   public
@@ -90,7 +100,7 @@ module Librsync
   extend Fiddle::Importer
 
   # Load library
-  dlload self.get_lib_path
+  dlload lib_path
 
   # rdiff delta
   extern 'int rs_rdiff_delta(char*, char*, char*)'

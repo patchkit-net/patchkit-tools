@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## Unreleased
 ### Changed
 - Upload-version tool is now using S3 upload method
+- Improved rsync library search method
 
 ## [2.3.0]
 ### Added
