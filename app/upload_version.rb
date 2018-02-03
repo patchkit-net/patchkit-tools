@@ -11,7 +11,7 @@ $META_END$
 
 require_relative 'core/patchkit_api.rb'
 require_relative 'core/patchkit_tools.rb'
-require_relative 'core/s3_uploader'
+require_relative 'core/utils/s3_uploader'
 require_relative 'core/utils/speed_calculator'
 
 require 'rubygems'

@@ -1,6 +1,6 @@
 require 'securerandom'
 require_relative 'limited_reader'
-require_relative 'patchkit_api'
+require_relative '../patchkit_api'
 
 module PatchKitTools
   class S3Uploader
