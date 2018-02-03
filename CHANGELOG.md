@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [2.3.0]
 ### Added
 - Ability to use draft version in publish_version (--draft parameter)
-- Ability to wait until version is published (--wait_for_published)
+- Ability to wait until version is published (--wait-until-published)
 
 ### Fixed
 - Dot files (.\*) were not included in diff summary causing processing to fail

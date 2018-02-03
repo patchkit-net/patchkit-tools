@@ -50,7 +50,7 @@ module PatchKitTools
           self.draft = true
         end
 
-        opts.on("-w", "--wait_until_published",
+        opts.on("-w", "--wait-until-published",
                 "waits until version is published (default: #{self.wait_until_published})") do
           self.wait_until_published = true
         end
