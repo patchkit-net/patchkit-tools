@@ -94,7 +94,7 @@ module PatchKitTools
 
       puts "Publishing version..."
 
-      PatchKitAPI::ResourceRequest.new(resource_name, nil, Net::HTTP::Put).get_object do
+      PatchKitAPI::ResourceRequest.new(resource_name, Net::HTTP::Put).get_object do
         puts "Version publish is pending!"
         PatchKitAPI.wait_until_version_published(self.secret, self.version) if self.wait_until_published
       end
