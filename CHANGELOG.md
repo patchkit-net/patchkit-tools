@@ -4,12 +4,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+### Added
+- Upload speed calculator next to the progress bar
+
+### Changed
+- Upload-version tool is now using S3 upload method
+- Improved rsync library search method
+
 ## [2.3.0]
 ### Added
 - Ability to use draft version in publish_version (--draft parameter)
 - Ability to wait until version is published (--wait-until-published)
 
 ### Fixed
+- Dot files (.\*) were not included in diff summary causing processing to fail
 - Fix for displaying progress bar on narrow console windows
 
 ## [2.2.0]

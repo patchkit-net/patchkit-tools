@@ -75,7 +75,9 @@ module PatchKitTools
 
       puts "Updating..."
 
-      PatchKitAPI::ResourceRequest.new(resource_name, resource_form, Net::HTTP::Patch).get_object do |object|
+      request = PatchKitAPI::ResourceRequest.new(resource_name, Net::HTTP::Patch)
+      request.form = resource_form
+      request.get_object do |object|
       end
     end
   end

@@ -11,6 +11,9 @@ $META_END$
 
 require_relative 'core/patchkit_api.rb'
 require_relative 'core/patchkit_tools.rb'
+require_relative 'core/utils/s3_uploader'
+require_relative 'core/utils/speed_calculator'
+
 require 'rubygems'
 require 'bundler/setup'
 require 'net/http/uploadprogress'
@@ -76,81 +79,6 @@ module PatchKitTools
       end
     end
 
-    def upload(&block)
-      begin
-        #TODO: Try to replace file_size with file_stream.size and confirm that it's working.
-        file_stream = File.open(self.file)
-        file_size = File.size(self.file)
-
-        new_upload_resource_name = "1/uploads?api_key=#{self.api_key}"
-        new_upload_resource_form =
-        {
-          "total_size_bytes" => file_size.to_s
-        }
-
-        new_upload_resource_request = PatchKitAPI::ResourceRequest.new(
-          new_upload_resource_name,
-          new_upload_resource_form,
-          Net::HTTP::Post
-        )
-
-        upload_id = new_upload_resource_request.get_object["id"]
-
-        offset = 0
-
-        until offset == file_size
-          begin
-            uploaded_chunk_size = upload_chunk(file_stream, file_size, offset, upload_id) do |uploaded_bytes|
-              block.call(offset + uploaded_bytes)
-            end
-
-            offset = offset + uploaded_chunk_size
-          rescue => e
-            puts "Failed to upload chunk with offset #{offset}, message: #{e.message}. Retrying..."
-            puts
-            puts
-          end
-        end
-
-        upload_id
-      ensure
-        file_stream.close
-      end
-    end
-
-    def upload_chunk(file_stream, file_size, offset, upload_id)
-      Dir.mktmpdir do |temp_dir|
-        chunk_file_name = "#{temp_dir}/chunk_#{offset}"
-
-        # set the file position at current offset
-        file_stream.rewind
-        file_stream.seek(offset, IO::SEEK_CUR)
-
-        File.open(chunk_file_name, 'wb') do |f|
-          f.write file_stream.read(PatchKitConfig.upload_chunk_size)
-        end
-
-        File.open(chunk_file_name, 'rb') do |f|
-          md5 = Digest::MD5.file(chunk_file_name).hexdigest
-
-          form_data = { "chunk" => f, "md5" => md5 }
-          resource_name = "1/uploads/#{upload_id}/chunk?api_key=#{api_key}"
-          request = PatchKitAPI::ResourceRequest.new(resource_name, form_data, Net::HTTP::Post)
-
-          request.http_request['Content-Range'] =
-            "bytes #{offset}-#{offset + File.size(chunk_file_name) - 1}/#{file_size}"
-
-          Net::HTTP::UploadProgress.new(request.http_request) do |progress|
-            yield progress.upload_size
-          end
-
-          request.get_response
-        end
-
-        File.size(chunk_file_name)
-      end
-    end
-
     def execute
       check_if_option_exists("secret")
       check_if_option_exists("api_key")
@@ -167,18 +95,31 @@ module PatchKitTools
       puts "Uploading #{self.mode}..."
 
       file_size = File.size(self.file)
-
       progress_bar = ProgressBar.new(file_size)
 
-      last_upload_callback_time = 0
+      speed_calculator = SpeedCalculator.new
 
-      upload_id = upload do |progress|
-        current_upload_callback_time = Time.now.to_f
-        if current_upload_callback_time - last_upload_callback_time > 0.5
-          progress_bar.print(progress, "Uploading %.2f MB out of %.2f MB" % [progress / 1024.0 / 1024.0, file_size / 1024.0 / 1024.0])
-          last_upload_callback_time = current_upload_callback_time
-        end
+      uploader = S3Uploader.new(api_key)
+      uploader.on(:progress) do |bytes_sent, bytes_total|
+        speed_calculator.submit(bytes_sent)
+
+
+        text = if speed_calculator.ready?
+                 format("Uploading %.2f MB out of %.2f MB (%.2f MB/s)",
+                        bytes_sent / 1024.0**2,
+                        bytes_total / 1024.0**2,
+                        speed_calculator.speed_per_second / 1024.0**2)
+               else
+                 format("Uploading %.2f MB out of %.2f MB",
+                        bytes_sent / 1024.0**2,
+                        bytes_total / 1024.0**2)
+               end
+
+        progress_bar.print(bytes_sent, text)
       end
+
+      uploader.upload_file(file)
+      upload_id = uploader.upload_id
 
       progress_bar.print(file_size, "Upload done")
 
@@ -200,7 +141,8 @@ module PatchKitTools
         ]
       end
 
-      update_version_resource_request = PatchKitAPI::ResourceRequest.new(update_version_resource_name, update_version_resource_form, Net::HTTP::Put)
+      update_version_resource_request = PatchKitAPI::ResourceRequest.new(update_version_resource_name, Net::HTTP::Put)
+      update_version_resource_request.form = update_version_resource_form
 
       update_version_resource_request.get_object do |object|
         @processing_job_guid = object['job_guid']
