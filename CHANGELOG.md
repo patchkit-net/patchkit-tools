@@ -5,8 +5,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
+### Added
+- Upload speed calculator next to the progress bar
+
 ### Changed
 - Upload-version tool is now using S3 upload method
+- Improved rsync library search method
 
 ## [2.3.0]
 ### Added

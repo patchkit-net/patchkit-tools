@@ -11,7 +11,9 @@ $META_END$
 
 require_relative 'core/patchkit_api.rb'
 require_relative 'core/patchkit_tools.rb'
-require_relative 'core/s3_uploader'
+require_relative 'core/utils/s3_uploader'
+require_relative 'core/utils/speed_calculator'
+
 require 'rubygems'
 require 'bundler/setup'
 require 'net/http/uploadprogress'
@@ -95,11 +97,24 @@ module PatchKitTools
       file_size = File.size(self.file)
       progress_bar = ProgressBar.new(file_size)
 
+      speed_calculator = SpeedCalculator.new
+
       uploader = S3Uploader.new(api_key)
       uploader.on(:progress) do |bytes_sent, bytes_total|
-        text = format("Uploading %.2f MB out of %.2f MB",
-          bytes_sent / 1024.0**2, bytes_total / 1024.0**2
-        )
+        speed_calculator.submit(bytes_sent)
+
+
+        text = if speed_calculator.ready?
+                 format("Uploading %.2f MB out of %.2f MB (%.2f MB/s)",
+                        bytes_sent / 1024.0**2,
+                        bytes_total / 1024.0**2,
+                        speed_calculator.speed_per_second / 1024.0**2)
+               else
+                 format("Uploading %.2f MB out of %.2f MB",
+                        bytes_sent / 1024.0**2,
+                        bytes_total / 1024.0**2)
+               end
+
         progress_bar.print(bytes_sent, text)
       end
 
