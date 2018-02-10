@@ -50,9 +50,9 @@ module PatchKitTools
       def each_part(io)
         until io.eof?
           pos = io.pos
-          remaining = @total - pos
+          part_size = [@part_size, @total - pos].min
 
-          yield LimitedReader.new(io, @part_size), [@part_size, remaining].min
+          yield LimitedReader.new(io, part_size), part_size
         end
       end
 
