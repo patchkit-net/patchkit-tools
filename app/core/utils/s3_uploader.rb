@@ -83,7 +83,12 @@ module PatchKitTools
         request = Net::HTTP::Put.new(uri.request_uri)
         request['Content-Type'] = ''
         request['Content-Length'] = size
-        request['x-amz-acl'] = 'bucket-owner-full-control'
+
+        # accelerated connection is a direct connection, it requires acl header
+        if uri.host.include? 's3-accelerate.amazonaws.com'
+          request['x-amz-acl'] = 'bucket-owner-full-control'
+        end
+
         request.body_stream = io
 
         response = http.request(request)
