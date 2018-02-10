@@ -83,6 +83,7 @@ module PatchKitTools
         request = Net::HTTP::Put.new(uri.request_uri)
         request['Content-Type'] = ''
         request['Content-Length'] = size
+        request['x-amz-acl'] = 'bucket-owner-full-control'
         request.body_stream = io
 
         response = http.request(request)
