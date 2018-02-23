@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Upload-version tool is now using S3 upload method
 - Improved rsync library search method
 
+### Fixed
+- Use `*.zi_` instead of `*.zip` extensions to fool AV software
+
 ## [2.3.0]
 ### Added
 - Ability to use draft version in publish_version (--draft parameter)

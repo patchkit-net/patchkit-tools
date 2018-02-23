@@ -114,7 +114,7 @@ module PatchKitTools
 
     def upload_version_content(draft_version_id)
       Dir.mktmpdir do |temp_dir|
-        content_package = "#{temp_dir}/#{self.secret}_content_#{draft_version_id}.zip"
+        content_package = "#{temp_dir}/#{self.secret}_content_#{draft_version_id}.zi_"
 
         content_version_tool = PatchKitTools::ContentVersionTool.new
         content_version_tool.files = self.files
@@ -139,7 +139,7 @@ module PatchKitTools
       Dir.mktmpdir do |temp_dir|
         previous_version_id = draft_version_id - 1
 
-        signatures_package = "#{temp_dir}/#{self.secret}_signatures_#{previous_version_id}.zip"
+        signatures_package = "#{temp_dir}/#{self.secret}_signatures_#{previous_version_id}.zi_"
 
         download_version_signatures_tool = PatchKitTools::DownloadVersionSignaturesTool.new
         download_version_signatures_tool.secret = self.secret
@@ -149,7 +149,7 @@ module PatchKitTools
 
         download_version_signatures_tool.execute
 
-        diff_package = "#{temp_dir}/#{self.secret}_diff_#{previous_version_id}.zip"
+        diff_package = "#{temp_dir}/#{self.secret}_diff_#{previous_version_id}.zi_"
         diff_summary = "#{temp_dir}/#{self.secret}_diff_summary_#{previous_version_id}.txt"
 
         diff_version_tool = PatchKitTools::DiffVersionTool.new
