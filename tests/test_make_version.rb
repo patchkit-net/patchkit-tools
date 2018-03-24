@@ -95,7 +95,7 @@ class MakeVersionTest < Test::Unit::TestCase
 
   def test_with_import
     tool = PatchKitTools::MakeVersionTool.new(
-      "--api-key api_key --secret secret --label 1 --import-app-secret source --import-app-vid 14".split(' ')
+      "--api-key api_key --secret secret --label 1 --import-app-secret source --import-version 14".split(' ')
     )
     tool.parse_options
     tool.expects(:ask).never

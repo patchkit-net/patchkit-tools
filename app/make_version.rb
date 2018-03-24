@@ -31,6 +31,7 @@ module PatchKitTools
       @overwrite_draft = "false"
       @changelog = nil
       @changelog_file = nil
+      @files = nil
     end
 
     def parse_options
@@ -60,8 +61,8 @@ module PatchKitTools
           @import_app_secret = secret
         end
 
-        opts.on("--import-app-vid <id>", Integer, 'id of source version') do |vid|
-          @import_app_vid = vid
+        opts.on("--import-version <id>", Integer, 'id of source version') do |vid|
+          @import_version = vid
         end
 
         opts.separator ""
@@ -107,7 +108,7 @@ module PatchKitTools
       if mode_files?
         upload_files!
       else
-        import_version!(app_secret: @import_app_secret, vid: @import_app_vid)
+        import_version!(app_secret: @import_app_secret, vid: @import_version)
       end
 
       if @publish == "true"

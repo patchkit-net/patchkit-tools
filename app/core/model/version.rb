@@ -15,9 +15,7 @@ module PatchKitTools
       def self.create(app, params)
         path = AbstractModel.construct_path("1/apps/#{app.secret}/versions")
         data = PatchKitAPI.post(path, params: params)
-        v = Version.new(app, data)
-        v.api_key = api_key
-        v
+        Version.new(app, data)
       end
 
       def self.find_by_id!(app, id)
