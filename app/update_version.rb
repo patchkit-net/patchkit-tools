@@ -66,19 +66,16 @@ module PatchKitTools
 
       raise "At least one property is required" if self.label.nil? && self.changelog.nil? && self.changelog_file.nil?
 
-      resource_name = "1/apps/#{self.secret}/versions/#{self.version}?api_key=#{self.api_key}"
-      resource_form = {}
+      request_path = "1/apps/#{self.secret}/versions/#{self.version}?api_key=#{self.api_key}"
+      form = {}
 
-      resource_form["label"] = self.label unless self.label.nil?
-      resource_form["changelog"] = self.changelog unless self.changelog.nil?
-      resource_form["changelog"] = File.open(self.changelog_file, 'rb') { |f| f.read } unless self.changelog_file.nil?
+      form[:label] = self.label unless self.label.nil?
+      form[:changelog] = self.changelog unless self.changelog.nil?
+      form[:changelog] = File.open(self.changelog_file, 'rb') { |f| f.read } unless self.changelog_file.nil?
 
       puts "Updating..."
 
-      request = PatchKitAPI::ResourceRequest.new(resource_name, Net::HTTP::Patch)
-      request.form = resource_form
-      request.get_object do |object|
-      end
+      PatchKitAPI.patch(request_path, params: form)
     end
   end
 end

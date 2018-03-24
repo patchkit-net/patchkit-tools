@@ -3,13 +3,12 @@ require_relative 'printer'
 # Base class for every tool
 
 module PatchKitTools
-  class BaseTool
+  class BaseTool2
     include Printer
-
+    
     attr_reader :host
 
-    def initialize(program_name, program_description, *program_usages)
-      @source = OpenStruct.new
+    def initialize(argv, program_name, program_description, *program_usages)
       @program_name = program_name
       @program_description = program_description
       @program_usages = program_usages
@@ -17,6 +16,7 @@ module PatchKitTools
       @opts_defined = []
       @opts_used = []
       @opts_required = []
+      @argv = argv
     end
 
     # Parse options from command line
@@ -25,15 +25,10 @@ module PatchKitTools
         opts.banner = ""
 
         opts.separator "patchkit-tools #{@program_name}"
-
         opts.separator ""
-
         opts.separator "Description:"
-
         opts.separator opts.summary_indent + @program_description
-
         opts.separator ""
-
         opts.separator "Usage:"
 
         @program_usages.each do |program_usage|
@@ -41,19 +36,18 @@ module PatchKitTools
         end
 
         opts.separator opts.summary_indent + "patchkit-tools #{@program_name} --help"
-
         opts.separator ""
-
       end
 
       yield @opt_parser
 
       @opt_parser.separator ""
-
       @opt_parser.separator "Common"
 
       unless @opts_defined.include? :host
-        option('host', value: true, required: false, description: 'Hostname (format: patchkit.net)')
+        @opt_parser.on('--host <host>', 'Hostname (format: patchkit.net)') do |host|
+          @host = host
+        end
       end
 
       @opt_parser.on("-h", "--help", "outputs a usage message and exit") do
@@ -62,12 +56,13 @@ module PatchKitTools
       end
 
       @opt_parser.separator ""
-
-      @opt_parser.parse!(ARGV)
+      @opt_parser.parse!(@argv)
 
       @opts_required.each do |opt|
         raise CommandLineError, "Missing required option --#{opt}" unless @opts_used.include? opt
       end
+
+      PatchKitAPI.api_key = @api_key
     end
 
     def ask(question)
@@ -95,9 +90,9 @@ module PatchKitTools
     end
 
     def ask_if_option_missing!(name)
-      if eval(name).nil?
+      if instance_variable_get("@#{name}").nil?
         result = ask("Please enter --#{argument_name(name)}")
-        eval("self.#{name} = \"#{result}\"")
+        instance_variable_set("@#{name}", result)
       end
 
       check_if_option_exists(name)
@@ -105,64 +100,59 @@ module PatchKitTools
 
     # Deprecated
     def check_if_option_exists(name)
-      raise CommandLineError, "[--#{argument_name(name)}] Missing argument" if eval(name).nil? || (eval(name).is_a?(String) && eval(name).empty?)
+      value = instance_variable_get("@#{name}")
+
+      if value.nil? || (value.is_a?(String) && value.empty?)
+        raise CommandLineError, "[--#{argument_name(name)}] Missing argument"
+      end
     end
 
     def check_if_valid_option_value(name, possible_values)
-      raise CommandLineError, "[--#{argument_name(name)}] Invalid argument value" unless possible_values.include? eval(name)
+      value = instance_variable_get("@#{name}")
+
+      unless possible_values.include? value
+        raise CommandLineError, "[--#{argument_name(name)}] Invalid argument value"
+      end
     end
 
     def check_if_option_directory_exists(name)
       check_if_option_exists(name)
-      raise CommandLineError, "[--#{argument_name(name)}] Directory doesn't exists - #{eval(name)}" unless File.exist?(eval(name))
-      raise CommandLineError, "[--#{argument_name(name)}] Excepted argument to be a directory, not a file - #{eval(name)}" unless File.directory?(eval(name))
+
+      value = instance_variable_get("@#{name}")
+
+      unless File.exist?(value)
+        raise CommandLineError, "[--#{argument_name(name)}] Directory doesn't exists - #{value}"
+      end
+
+      unless File.directory?(value)
+        raise CommandLineError, "[--#{argument_name(name)}] Excepted argument to be a directory, not a file - #{value}"
+      end
     end
 
     def check_if_option_file_exists_and_readable(name)
       check_if_option_exists(name)
-      raise CommandLineError, "[--#{argument_name(name)}] File doesn't exists - #{eval(name)}" unless File.file?(eval(name))
-      raise CommandLineError, "[--#{argument_name(name)}] File isn't readable - #{eval(name)}" unless File.readable?(eval(name))
+
+      value = instance_variable_get("@#{name}")
+
+      unless File.file?(value)
+        raise CommandLineError, "[--#{argument_name(name)}] File doesn't exists - #{value}"
+      end
+
+      unless File.readable?(value)
+        raise CommandLineError, "[--#{argument_name(name)}] File isn't readable - #{value}"
+      end
     end
 
     def check_option_version_files_directory(name)
       check_if_option_directory_exists(name)
-      raise CommandLineError, "[--#{argument_name(name)}] You've selected a directory that contains a single zip file #{eval(name)}. You need to pass a directory with unzipped files of your application." if FileHelper::only_zip_file_in_directory(eval(name))
-    end
 
-    # Alias to @source
-    def method_missing(method, *args, &block)
-      @source.send(method, *args, &block)
-    end
+      value = instance_variable_get("@#{name}")
 
-    def option(name, **opts)
-      required = opts[:required]
-      raise('need to specify :required option') if required.nil?
-
-      letter = opts[:letter]
-      description = opts[:description]
-      with_value = opts[:value] || false
-
-      if letter.nil?
-        @opt_parser.on(
-            "--#{name}" + (with_value ? " <#{name}>" : ""),
-            description
-        ) do |value|
-          @opts_used << name.to_sym
-          instance_variable_set("@#{name}", value) if with_value
-        end
-      else
-        @opt_parser.on(
-            "-#{letter}",
-            "--#{name}" + (with_value ? " <#{name}>" : ""),
-            description
-        ) do |value|
-          @opts_used << name.to_sym
-          instance_variable_set("@#{name}", value) if with_value
-        end
+      if FileHelper.only_zip_file_in_directory(value)
+        raise CommandLineError, "[--#{argument_name(name)}] You've selected a directory that "\
+        "contains a single zip file #{value}. You need to pass a directory with unzipped files of "\
+        "your application."
       end
-
-      @opts_required << name.to_sym if required
-      @opts_defined << name.to_sym
     end
 
     private

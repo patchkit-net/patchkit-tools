@@ -11,6 +11,7 @@ $META_END$
 
 require_relative 'core/patchkit_api.rb'
 require_relative 'core/patchkit_tools.rb'
+require_relative 'core/model/app'
 
 module PatchKitTools
   class DownloadVersionSignaturesTool < PatchKitTools::BaseTool
@@ -51,13 +52,17 @@ module PatchKitTools
       check_if_option_exists("version")
       check_if_option_exists("output")
 
+      app = App.find_by_secret!(self.secret)
+      version = Version.find_by_id!(app, self.version)
+      raise "Cannot find version: #{self.version}" if version.nil?
+
       downloaded = 0
       content_size = -1
       progress_bar = nil
 
       while downloaded != content_size
 
-        PatchKitAPI::ResourceRequest.new("1/apps/#{self.secret}/versions/#{self.version}/signatures?api_key=#{self.api_key}").get_response do |response|
+        version.download_signatures do |response|
           file = File.open(self.output, 'wb')
           begin
             content_size = response.content_length
@@ -68,9 +73,10 @@ module PatchKitTools
               file.write segment
 
               downloaded += segment.bytesize
-              progress_bar.print(downloaded, "Downloading signature - %.2f MB out of %.2f MB" % [downloaded / 1024.0 / 1024.0, content_size / 1024.0 / 1024.0])
+              progress_bar.print(downloaded,
+                "Downloading signature - %.2f MB out of %.2f MB" %
+                [downloaded / 1024.0 / 1024.0, content_size / 1024.0 / 1024.0])
             end
-            
           ensure
             file.close
           end

@@ -1,7 +1,7 @@
 require 'tempfile'
 
 require_relative 'test_helper'
-require_relative '../app/core/s3_uploader'
+require_relative '../app/core/utils/s3_uploader'
 
 class S3UploaderTest < Test::Unit::TestCase
   def test_upload

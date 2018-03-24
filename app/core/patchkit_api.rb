@@ -6,6 +6,7 @@ require_relative 'patchkit_config.rb'
 module PatchKitAPI
   class << self
     attr_accessor :api_url
+    attr_accessor :api_key
 
     # deprecated since 10.04.2017
     def get_resource_uri(resource_name)
@@ -27,14 +28,21 @@ module PatchKitAPI
       process_request(req, params)
     end
 
-    def patch(path, **params)
+    def patch(path, params)
       req = PatchKitAPI::ResourceRequest.new(path, Net::HTTP::Patch)
       process_request(req, params)
     end
 
+    def put(path, params)
+      req = PatchKitAPI::ResourceRequest.new(path, Net::HTTP::Put)
+      process_request(req, params)
+    end
+
     def process_request(request, params)
-      request.form = params[:params].collect{ |k, v| [k.to_s, v.to_s]}.to_h if params.include? :params
-      request.headers = params[:headers].collect{ |k, v| [k.to_s, v.to_s]}.to_h if params.include? :headers
+      request.form = params.delete(:params).collect{ |k, v| [k.to_s, v.to_s]}.to_h if params.include? :params
+      request.headers = params.delete(:headers).collect{ |k, v| [k.to_s, v.to_s]}.to_h if params.include? :headers
+
+      raise "unknown keys: #{params.keys}" unless params.empty?
 
       response = request.get_response
       JSON.parse(response.body, symbolize_names: true)
