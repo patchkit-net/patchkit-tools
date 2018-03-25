@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+### Added
+- make-version --import-app-secret parameter
+- make-version --import-version parameter
+- make-version --import-copy-label parameter
+- make-version --import-copy-changelog parameter
+
+### Changed
+- Refactoring of model abstraction layer
+
 ## [2.4.0]
 ### Added
 - Upload speed calculator next to the progress bar
