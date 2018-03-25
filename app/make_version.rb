@@ -27,11 +27,14 @@ module PatchKitTools
       super(argv, "make-version", "Creates and uploads a complete version with optional publishing.",
             "[-s <secret>] [-a <api_key>] [-l <label>] [-f <files>] [-c <changelog>]")
 
+      @label = nil
       @publish = "false"
       @overwrite_draft = "false"
       @changelog = nil
       @changelog_file = nil
       @files = nil
+      @import_copy_label = false
+      @import_copy_changelog = false
     end
 
     def parse_options
@@ -62,7 +65,7 @@ module PatchKitTools
         end
 
         opts.on("--import-version <id>", Integer, 'id of source version') do |vid|
-          @import_version = vid
+          @import_version_vid = vid
         end
 
         opts.separator ""
@@ -87,12 +90,22 @@ module PatchKitTools
           "should draft version be overwritten if it already exists (default: #{@overwrite_draft})") do |overwrite_draft|
           @overwrite_draft = overwrite_draft
         end
+
+        opts.on("--import-copy-label", 'copy label from source version') do
+          @import_copy_label = true
+        end
+
+        opts.on("--import-copy-changelog", Integer, 'copy changelog from source version') do
+          @import_copy_changelog = true
+        end
       end
     end
 
     def execute
       interactive_ask if interactive?
       validate_input!
+
+      validate_source_version! unless mode_files?
 
       if !draft_version.nil?
         if @overwrite_draft != "true" && !ask_yes_or_no("Draft version already exists. Its "\
@@ -108,7 +121,7 @@ module PatchKitTools
       if mode_files?
         upload_files!
       else
-        import_version!(app_secret: @import_app_secret, vid: @import_version)
+        import_version!(app_secret: @import_app_secret, vid: @import_version_vid)
       end
 
       if @publish == "true"
@@ -124,20 +137,46 @@ module PatchKitTools
       validate_processed!
     end
 
+    def validate_source_version!
+      raise_error "Source version cannot be imported" unless source_version.can_be_imported?
+    end
+
+    def source_app
+      raise "invalid mode" unless mode_import?
+      @source_app ||= App.find_by_secret!(@import_app_secret)
+    end
+
+    def source_version
+      raise "invalid mode" unless mode_import?
+      @source_version ||= Version.find_by_id!(source_app, @import_version_vid)
+    end
+
     def update_draft_version_details!
-      draft_version.label = @label
-
-      if !@changelog.nil?
-        draft_version.changelog = @changelog
-      elsif !@changelog_file.nil?
-        draft_version.changelog = File.read(@changelog_file)
-      end
-
+      draft_version.label = target_label
+      draft_version.changelog = target_changelog unless target_changelog.nil?
       draft_version.save!
     end
 
     def create_draft_version!
-      self.draft_version = Version.create(app, label: @label)
+      self.draft_version = Version.create(app, label: target_label)
+    end
+
+    def target_label
+      @label ||= if mode_import? && @import_copy_label
+                   source_version.label
+                 else
+                   @label
+                 end
+    end
+
+    def target_changelog
+      @changelog ||= if mode_import? && @import_copy_changelog
+                       source_version.changelog
+                     elsif !@changelog_file.nil?
+                       File.read(@changelog_file)
+                     else
+                       @changelog
+                     end
     end
 
     def upload_version_content
@@ -227,7 +266,7 @@ module PatchKitTools
       draft_version.reload
 
       if draft_version.has_processing_error?
-        raise CommandLineError, "Version processing finished with processing error. "\
+        raise_error "Version processing finished with processing error. "\
                                 "Please contact support at contact@patchkit.net."
       end
 
@@ -235,7 +274,7 @@ module PatchKitTools
                .select { |m| m[:severity] == 'error' }
                .map { |m| m[:message] }
       unless errors.empty?
-        raise CommandLineError, "Version processing failed:\n- #{errors.join("\n -")}"
+        raise_error "Version processing failed:\n- #{errors.join("\n -")}"
       end
     end
 
@@ -254,7 +293,7 @@ module PatchKitTools
     def interactive_ask
       ask_if_option_missing!("secret")
       ask_if_option_missing!("api_key")
-      ask_if_option_missing!("label")
+      ask_if_option_missing!("label") if mode_import?
       ask_if_option_missing!("files")
     end
 
@@ -264,12 +303,28 @@ module PatchKitTools
 
         # fix the path slashes
         @files.tr!('\\', '/')
-        raise CommandLineError, "Given directory #{@files} is empty" if Dir["#{@files}/*"].empty?
+        raise_error "Given directory #{@files} is empty" if Dir["#{@files}/*"].empty?
+      elsif mode_import?
+        if @import_copy_label && !@label.nil?
+          raise_error "--label not allowed if --import-copy-label is set"
+        end
+
+        if @import_copy_changelog && !@changelog.nil?
+          raise_error "--changelog not allowed when --import-copy-changelog is set"
+        end
+
+        if @import_copy_changelog && !@changelog_file.nil?
+          raise_error "--changelog not allowed when --import-copy-changelog is set"
+        end
       end
     end
 
     def mode_files?
       !@files.nil?
+    end
+
+    def mode_import?
+      !mode_files?
     end
 
     def upload_files!

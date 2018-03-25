@@ -155,10 +155,16 @@ module PatchKitTools
       end
     end
 
+    protected
+
+      def raise_error(message)
+        raise CommandLineError, message
+      end
+
     private
 
-    def argument_name(name)
-      name.gsub('_', '-')
-    end
+      def argument_name(name)
+        name.gsub('_', '-')
+      end
   end
 end
