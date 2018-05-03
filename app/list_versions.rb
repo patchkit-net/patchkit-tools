@@ -62,12 +62,10 @@ module PatchKitTools
       check_if_valid_option_value("sort_mode", SORT_MODES)
 
       resource_name = "1/apps/#{self.secret}/versions"
+      resource_name << "?api_key=#{self.api_key}" unless self.api_key.nil?
 
-      resource_name += "?api_key=#{self.api_key}" unless self.api_key.nil?
-
-      results = PatchKitAPI::ResourceRequest.new(resource_name).get_object
-      
-      results = results.sort_by {|version| self.sort_mode == "asc" ? version["id"] : -version["id"]}
+      results = PatchKitAPI.get(resource_name)
+      results = results.sort_by {|version| self.sort_mode == "asc" ? version[:id] : -version[:id]}
 
       @versions_list = results
 
@@ -76,7 +74,7 @@ module PatchKitTools
       end
 
       results.each do |version|
-        puts "|-- #{version["label"]} (#{version["id"]})"
+        puts "|-- #{version[:label]} (#{version[:id]})"
 
         version.each do |key, value|
           puts "|   |-- #{key}: #{value}"

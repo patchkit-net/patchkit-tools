@@ -539,7 +539,7 @@ Layout/IndentationConsistency:
   # protected and private members shall be indented one step more than the
   # modifiers. Other than that, both styles mean that entities on the same
   # logical depth shall have the same indentation.
-  EnforcedStyle: normal
+  EnforcedStyle: rails
   SupportedStyles:
     - normal
     - rails

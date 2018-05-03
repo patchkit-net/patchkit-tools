@@ -13,6 +13,7 @@ require_relative 'core/patchkit_api.rb'
 require_relative 'core/patchkit_tools.rb'
 require_relative 'core/utils/s3_uploader'
 require_relative 'core/utils/speed_calculator'
+require_relative 'core/model/app'
 
 require 'rubygems'
 require 'bundler/setup'
@@ -20,11 +21,11 @@ require 'net/http/uploadprogress'
 require 'digest'
 
 module PatchKitTools
-  # after successful upload, you can read the result job GUID here
-  attr_reader :processing_job_guid
-
   class UploadVersionTool < PatchKitTools::BaseTool
     UPLOAD_MODES = ["content", "diff"]
+
+    # after successful upload, you can read the result job GUID here
+    attr_reader :processing_job_guid
 
     def initialize
       super("upload-version", "Uploads new version by sending content or diff.",
@@ -89,8 +90,10 @@ module PatchKitTools
 
       # Check if the version is draft
       puts "Checking version..."
-      version_status = (PatchKitAPI::ResourceRequest.new "1/apps/#{self.secret}/versions/#{self.version}?api_key=#{self.api_key}").get_object
-      raise "Version must be a draft" unless version_status["draft"]
+      app = App.find_by_secret!(self.secret)
+      
+      version = Version.find_by_id!(app, self.version)
+      raise "Version must be a draft" unless version.draft?
 
       puts "Uploading #{self.mode}..."
 
@@ -102,7 +105,6 @@ module PatchKitTools
       uploader = S3Uploader.new(api_key)
       uploader.on(:progress) do |bytes_sent, bytes_total|
         speed_calculator.submit(bytes_sent)
-
 
         text = if speed_calculator.ready?
                  format("Uploading %.2f MB out of %.2f MB (%.2f MB/s)",
@@ -123,36 +125,23 @@ module PatchKitTools
 
       progress_bar.print(file_size, "Upload done")
 
-      update_version_resource_name, update_version_resource_form = case self.mode
-      when "content"
-        [
-          "1/apps/#{self.secret}/versions/#{self.version}/content_file?api_key=#{self.api_key}",
-          {
-            "upload_id" => upload_id.to_s
-          }
-        ]
-      when "diff"
-        [
-          "1/apps/#{self.secret}/versions/#{self.version}/diff_file?api_key=#{self.api_key}",
-          {
-            "upload_id" => upload_id.to_s,
-            "diff_summary" => File.open(self.diff_summary, 'rb') { |f| f.read }
-          }
-        ]
-      end
+      result = case self.mode
+               when 'content'
+                 version.upload_content!(upload_id: upload_id)
+               when 'diff'
+                 version.upload_diff!(upload_id: upload_id,
+                                      diff_summary: File.read(self.diff_summary))
+               else
+                 raise "unknown mode: #{self.mode}"
+               end
 
-      update_version_resource_request = PatchKitAPI::ResourceRequest.new(update_version_resource_name, Net::HTTP::Put)
-      update_version_resource_request.form = update_version_resource_form
+      @processing_job_guid = result[:job_guid]
+      # Optionally wait for finish of version processing job
+      if self.wait_for_job
+        puts "Waiting for finish of version processing job..."
 
-      update_version_resource_request.get_object do |object|
-        @processing_job_guid = object['job_guid']
-        # Optionally wait for finish of version processing job
-        if self.wait_for_job
-          puts "Waiting for finish of version processing job..."
-
-          # Display job progress bar
-          PatchKitAPI.display_job_progress(@processing_job_guid)
-        end
+        # Display job progress bar
+        PatchKitAPI.display_job_progress(@processing_job_guid)
       end
     end
   end

@@ -58,22 +58,15 @@ module PatchKitTools
       check_if_option_exists("api_key")
       check_if_option_exists("label")
 
-      resource_name = "1/apps/#{self.secret}/versions?api_key=#{self.api_key}"
+      request_path = "1/apps/#{self.secret}/versions?api_key=#{self.api_key}"
 
-      resource_form = {
-        "label" => self.label,
-      }
-
-      resource_form["changelog"] = self.changelog unless self.changelog.nil?
+      request_form["changelog"] = self.changelog unless self.changelog.nil?
 
       puts "Creating version..."
 
-      request = PatchKitAPI::ResourceRequest.new(resource_name, Net::HTTP::Post)
-      request.form = resource_form
-      result = request.get_object
+      result = PatchKitAPI.post(request_path, params: { label: self.label })
 
-      @created_version_id = result["id"]
-
+      @created_version_id = result[:id]
       puts "A new version of id #{@created_version_id} has been created!"
     end
   end

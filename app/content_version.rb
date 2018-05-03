@@ -41,11 +41,11 @@ module PatchKitTools
 
       puts "Creating content..."
 
-      PatchKitVersionContent::create_content(self.files, self.content)
+      PatchKitVersionContent.create_content(self.files, self.content)
     end
   end
 end
 
 if $0 == __FILE__
-  PatchKitTools::execute_tool PatchKitTools::ContentVersionTool.new
+  PatchKitTools.execute_tool PatchKitTools::ContentVersionTool.new
 end
