@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Changed
 - make-version -x and --override-draft does not require second parameter
+- make-version renamed --changelogfile to --changelog-file
 
 ## [2.5.0]
 ### Added

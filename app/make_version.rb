@@ -81,7 +81,7 @@ module PatchKitTools
           @changelog = changelog
         end
 
-        opts.on("-z", "--changelogfile <changelog_file>",
+        opts.on("-z", "--changelog-file <changelog_file>",
           "text file with version changelog") do |changelog_file|
           @changelog_file = changelog_file
         end
