@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 - Refactoring of model abstraction layer
+- make-version -x and --override-draft does not require second parameter
 
 ## [2.4.0]
 ### Added
