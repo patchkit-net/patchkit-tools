@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+### Changed
+- make-version -x and --override-draft does not require second parameter
+
 ## [2.5.0]
 ### Added
 - make-version --import-app-secret parameter
@@ -13,7 +17,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 - Refactoring of model abstraction layer
-- make-version -x and --override-draft does not require second parameter
 
 ## [2.4.0]
 ### Added
