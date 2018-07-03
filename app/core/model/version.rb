@@ -30,6 +30,11 @@ module PatchKitTools
         do_post("1/apps/#{app.secret}/versions/#{id}/import", params)
       end
 
+      def link_to!(source_app_secret:, source_vid:)
+        do_post("1/apps/#{app.secret}/versions/#{id}/link",
+                source_app_secret: source_app_secret, source_app_version_id: source_vid)
+      end
+
       def upload_content!(params)
         raise ":upload_id required" unless params.include? :upload_id
 

@@ -117,7 +117,7 @@ module PatchKitAPI
         last_status = job_status[:status]
 
         status_message = job_status[:status_message]
-        
+
         if last_status.zero?
           status_message = "Pending" if job_status[:pending]
           status_message = "Done" if job_status[:finished]

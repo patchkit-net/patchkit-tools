@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+- channel-link-version command
+
 ### Changed
 - make-version -x and --override-draft does not require second parameter
 - make-version renamed --changelogfile to --changelog-file
