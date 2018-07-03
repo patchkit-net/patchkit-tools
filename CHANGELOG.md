@@ -14,9 +14,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Progress bar: Limited refresh frequency to 2 per second. Makes the stdout stream smaller (good for logging).
 - list-version command renamed to list-versions
 - list-versions generating yaml or json (depending on -f param)
-
-### Changed
 - Refactoring of model abstraction layer
+- patchkit_api http errors are now APIErrors (without stacktrace)
 
 ## [2.5.0]
 ### Added
