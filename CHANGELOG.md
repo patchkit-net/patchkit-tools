@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - make-version -x and --override-draft does not require second parameter
 - make-version renamed --changelogfile to --changelog-file
 - Progress bar: Limited refresh frequency to 2 per second. Makes the stdout stream smaller (good for logging).
+- list-version command renamed to list-versions
 - list-versions generating yaml or json (depending on -f param)
 
 ### Changed
