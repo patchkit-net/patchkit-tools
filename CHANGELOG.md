@@ -10,15 +10,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - make-version renamed --changelogfile to --changelog-file
 - Progress bar: Limited refresh frequency to 2 per second. Makes the stdout stream smaller (good for logging).
 
+### Changed
+- Refactoring of model abstraction layer
+
 ## [2.5.0]
 ### Added
 - make-version --import-app-secret parameter
 - make-version --import-version parameter
 - make-version --import-copy-label parameter
 - make-version --import-copy-changelog parameter
-
-### Changed
-- Refactoring of model abstraction layer
 
 ## [2.4.0]
 ### Added
