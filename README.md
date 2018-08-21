@@ -5,7 +5,13 @@ Read about it [here](http://docs.patchkit.net/tools).
 
 ## Packaging
 
-Execute `rake package`. Result will be placed at `packaging/output`.
+Requirements:
+
+- POSIX environment (Linux, OSX or Windows with Linux subsystem)
+- docker
+- make
+
+Execute `make build`. Result will be placed at `packaging/output`.
 
 ## Known Bugs
 - Warnings on Windows packaged version of tools are disabled (because of warnings of redefined constants from Fiddle)
