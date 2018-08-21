@@ -15,7 +15,11 @@ module PatchKitAPI
 
     def resource_uri(path)
       api_url = @api_url || PatchKitConfig.api_url
-      URI.parse("#{api_url}/#{path}")
+      if path.start_with? '/'
+        URI.parse("#{api_url}#{path}")
+      else
+        URI.parse("#{api_url}/#{path}")
+      end
     end
 
     def get(path, **params)
@@ -63,10 +67,10 @@ module PatchKitAPI
 
     def get_response
       http_request = @resource_method.new(@url)
-      http_request.set_form(@form, "multipart/form-data") if not @form.nil?
+      http_request.set_form(@form, "multipart/form-data") unless @form.nil? || @form.empty?
       @headers.each { |key, value| http_request[key] = value }
 
-      Net::HTTP.start(@url.host, @url.port) do |http|
+      Net::HTTP.start(@url.host, @url.port, use_ssl: @url.scheme == 'https') do |http|
         http.request(http_request) do |response|
           if response.kind_of?(Net::HTTPSuccess)
             yield response if block_given?
