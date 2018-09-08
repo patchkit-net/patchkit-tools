@@ -31,7 +31,7 @@ module PatchKitTools
           self.secret = secret
         end
 
-        opts.on("-a", "--apikey <api_key>",
+        opts.on("-a", "--api-key <api_key>",
           "user API key") do |api_key|
           self.api_key = api_key
         end
@@ -50,8 +50,7 @@ module PatchKitTools
           self.draft = true
         end
 
-        opts.on("-w", "--wait-until-published",
-                "waits until version is published (default: #{self.wait_until_published})") do
+        opts.on("-w", "--wait", "waits until version is published") do
           self.wait_until_published = true
         end
       end

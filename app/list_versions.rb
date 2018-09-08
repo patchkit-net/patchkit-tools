@@ -35,15 +35,15 @@ module PatchKitTools
         opts.separator ""
         opts.separator "Optional"
 
-        opts.on("-a", "--apikey <apikey>",
+        opts.on("-a", "--api-key <apikey>",
                 "user API key (when supplied draft version is also listed)") { |v| @api_key = v }
 
-        opts.on("-l", "--displaylimit <display_limit>", Integer,
+        opts.on("-l", "--display-limit <display_limit>", Integer,
                 "limit of displayed versions; -1 = infinite (default: #{@display_limit})") do |v|
           @display_limit = v
         end
 
-        opts.on("-m", "--sortmode <sort_mode>",
+        opts.on("-m", "--sort-mode <sort_mode>",
                 "sort mode; #{SORT_MODES.join(", ")} (default: #{@sort_mode})") do |v|
           @sort_mode = v
         end

@@ -9,8 +9,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - channel-link-version command
 
 ### Changed
-- make-version -x and --override-draft does not require second parameter
-- make-version renamed --changelogfile to --changelog-file
+- All `--apikey` parameters renamed to `--api-key`
+- diff-version parameter `--diffsummary` renamed to `--out-diff-summary-file`
+- list-versions parameter `--displaylimit` renamed to `--display-limit`
+- list-versions parameter `--sortmode` renamed to `--sort-mode`
+- update-version parameter `--sortmode` renamed to `--sort-mode`
+- update-version parameter `--changelogfile` renamed to `--changelog-file`
+- make-version parameter `--changelogfile` renamed to `--changelog-file`
+- make-version parameters `-x` and `--override-draft` does not require second parameter
+- upload-version parameter `--diffsummary` renamed to `--diff-summary-file`
+- upload-version parameter `--waitforjob` renamed to `--wait-for-job`
+- publish-version parameter `--wait-until-published` renamed to `--wait`
 - Progress bar: Limited refresh frequency to 2 per second. Makes the stdout stream smaller (good for logging).
 - list-version command renamed to list-versions
 - list-versions generating yaml or json (depending on -f param)

@@ -29,7 +29,7 @@ module PatchKitTools
           self.secret = secret
         end
 
-        opts.on("-a", "--apikey <api_key>",
+        opts.on("-a", "--api-key <api_key>",
           "user API key") do |api_key|
           self.api_key = api_key
         end
