@@ -19,7 +19,7 @@ module PatchKitTools
 
     def initialize(argv = ARGV)
       super(argv, "channel-link-version", "Links channel to existing version.",
-            "-s <secret> -a <api_key> -v <version> -gs <group_secret> -gv <group_version>")
+            "-s <secret> -a <api_key> -v <version> --group-secret <group_secret> --group-version <group_version>")
     end
 
     def parse_options
@@ -30,8 +30,8 @@ module PatchKitTools
         opts.on("-a", "--api-key <api_key>", "user API key") { |v| @api_key = v }
         opts.on("-v", "--version <version>", Integer,
                 "application version id") { |v| @version = v }
-        opts.on("-gs", "--group-secret <secret>", "group secret") { |v| @group_secret = v }
-        opts.on("-gv", "--group-version <version>", Integer,
+        opts.on("--group-secret <secret>", "group secret") { |v| @group_secret = v }
+        opts.on("--group-version <version>", Integer,
                 "group version id") { |v| @group_version = v }
       end
     end
