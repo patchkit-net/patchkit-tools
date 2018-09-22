@@ -7,6 +7,7 @@ module PatchKitTools
     include Printer
 
     attr_reader :host
+    attr_reader :https
 
     def initialize(program_name, program_description, *program_usages)
       @source = OpenStruct.new
@@ -54,6 +55,10 @@ module PatchKitTools
 
       unless @opts_defined.include? :host
         option('host', value: true, required: false, description: 'Hostname (format: patchkit.net)')
+      end
+
+      unless @opts_defined.include? :https
+        option('https', value: true, required: false, description: 'Use HTTPS (false)')
       end
 
       @opt_parser.on("-h", "--help", "outputs a usage message and exit") do

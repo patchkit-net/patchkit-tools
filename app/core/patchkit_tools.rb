@@ -9,7 +9,15 @@ module PatchKitTools
       tool.parse_options
       
       # override api_url if --host has been provided
-      ::PatchKitAPI.api_url = "http://#{tool.host}/" if !tool.host.nil? && !tool.host.empty?
+      
+      protocol =
+        if tool.https == "true"
+          'https'
+        else
+          'http'
+        end
+
+      ::PatchKitAPI.api_url = "#{protocol}://#{tool.host}" if !tool.host.nil? && !tool.host.empty?
 
       tool.execute
       exit true

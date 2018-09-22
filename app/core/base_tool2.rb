@@ -57,6 +57,12 @@ module PatchKitTools
         end
       end
 
+      unless @opts_defined.include? :https
+        @opt_parser.on('--https <true|false>', 'Use HTTPS (false)') do |host|
+          @host = host
+        end
+      end
+
       @opt_parser.on("-h", "--help", "outputs a usage message and exit") do
         puts @opt_parser
         exit
