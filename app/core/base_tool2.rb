@@ -7,6 +7,7 @@ module PatchKitTools
     include Printer
 
     attr_reader :host
+    attr_reader :https
 
     def initialize(argv, program_name, program_description, *program_usages)
       @program_name = program_name
