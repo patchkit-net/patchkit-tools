@@ -13,6 +13,8 @@ require_relative 'core/patchkit_api.rb'
 require_relative 'core/patchkit_tools.rb'
 require_relative 'core/model/app'
 
+include PatchKitTools::Model
+
 module PatchKitTools
   class DownloadVersionSignaturesTool < PatchKitTools::BaseTool
     def initialize

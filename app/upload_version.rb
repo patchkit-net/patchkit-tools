@@ -20,6 +20,8 @@ require 'bundler/setup'
 require 'net/http/uploadprogress'
 require 'digest'
 
+include PatchKitTools::Model
+
 module PatchKitTools
   class UploadVersionTool < PatchKitTools::BaseTool
     UPLOAD_MODES = ["content", "diff"]
