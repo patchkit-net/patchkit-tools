@@ -17,6 +17,10 @@ module PatchKitTools
         versions = do_get("1/apps/#{secret}/versions")
         versions.map! { |v| Version.new(self, v) }
       end
+
+      def group
+        App.find_by_secret!(parent_group[:secret])
+      end
     end
   end
 end

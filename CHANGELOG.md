@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [3.0.0]
 ### Added
 - channel-link-version command
+- channel-make-version command
 
 ### Changed
 - All `--apikey` parameters renamed to `--api-key`
