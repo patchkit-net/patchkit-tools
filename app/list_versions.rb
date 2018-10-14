@@ -48,7 +48,7 @@ module PatchKitTools
           @sort_mode = v
         end
 
-        opts.on('-f', '--format <format>', 'output formtat (default: yaml)') do |v|
+        opts.on('-f', '--format <format>', 'output format (default: yaml, available: yaml, json)') do |v|
           @format = v.to_sym
         end
       end
@@ -72,7 +72,7 @@ module PatchKitTools
              when :yaml
                YAML.dump(results)
              when :json
-               JSON.generate(results)
+               JSON.pretty_generate(results)
              else
                raise "unknown format: #{@format}"
              end
