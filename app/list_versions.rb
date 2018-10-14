@@ -35,7 +35,7 @@ module PatchKitTools
         opts.separator ""
         opts.separator "Optional"
 
-        opts.on("-a", "--api-key <apikey>",
+        opts.on("-a", "--api-key <api_key>",
                 "user API key (when supplied draft version is also listed)") { |v| @api_key = v }
 
         opts.on("-l", "--display-limit <display_limit>", Integer,
