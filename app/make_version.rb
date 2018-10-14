@@ -71,10 +71,7 @@ module PatchKitTools
         opts.separator ""
         opts.separator "Optional"
 
-        opts.on("-p", "--publish <true | false>",
-          "should version be published after upload (default: #{@publish})") do |publish|
-          @publish = publish == 'true'
-        end
+        opts.on("-p", "--publish", "publish after finished") { @publish = true }
 
         opts.on("-c", "--changelog <changelog>",
           "version changelog") do |changelog|

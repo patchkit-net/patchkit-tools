@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - update-version parameter `--changelogfile` renamed to `--changelog-file`
 - make-version parameter `--changelogfile` renamed to `--changelog-file`
 - make-version parameters `-x` and `--override-draft` does not require second parameter
+- make-version parameter `--publish` does not require second parameter
 - upload-version parameter `--diffsummary` renamed to `--diff-summary-file`
 - upload-version parameter `--waitforjob` renamed to `--wait-for-job`
 - publish-version parameter `--wait-until-published` renamed to `--wait`
