@@ -17,6 +17,11 @@ module PatchKitTools
   class ListVersionsTool < PatchKitTools::BaseTool2
     attr_reader :versions_list
 
+    attr_writer :secret
+    attr_writer :api_key
+    attr_writer :display_limit
+    attr_writer :sort_mode
+
     SORT_MODES = ["desc", "asc"]
 
     def initialize(argv = ARGV)

@@ -30,8 +30,8 @@ module PatchKitTools
         end
 
         opts.on("-c", "--content <content>",
-          "output content file") do |diff|
-          self.diff = diff
+          "output content file") do |content|
+          self.content = content
         end
       end
     end

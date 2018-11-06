@@ -1,3 +1,5 @@
+require 'pathname'
+
 module FileHelper
   # Lists all files in directory and returns their relative path
   def self.list_relative(dir)

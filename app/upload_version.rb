@@ -15,8 +15,6 @@ require_relative 'core/utils/s3_uploader'
 require_relative 'core/utils/speed_calculator'
 require_relative 'core/model/app'
 
-require 'rubygems'
-require 'bundler/setup'
 require 'net/http/uploadprogress'
 require 'digest'
 
@@ -75,7 +73,7 @@ module PatchKitTools
 
         opts.separator "Optional"
 
-        opts.on("-w", "--wait-for-job <true | false>",
+        opts.on("-w", "--wait <true | false>",
           "should program wait for finish of version processing job (default: #{self.wait_for_job})") do |wait_for_job|
             self.wait_for_job = wait_for_job
           end
