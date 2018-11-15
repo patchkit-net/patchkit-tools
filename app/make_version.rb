@@ -28,8 +28,8 @@ module PatchKitTools
             "[-s <secret>] [-a <api_key>] [-l <label>] [-f <files>] [-c <changelog>]")
 
       @label = nil
-      @publish = "false"
-      @overwrite_draft = "false"
+      @publish = false
+      @overwrite_draft = false
       @changelog = nil
       @changelog_file = nil
       @files = nil
@@ -71,24 +71,21 @@ module PatchKitTools
         opts.separator ""
         opts.separator "Optional"
 
-        opts.on("-p", "--publish <true | false>",
-          "should version be published after upload (default: #{@publish})") do |publish|
-          @publish = publish
-        end
+        opts.on("-p", "--publish", "publish after finished") { @publish = true }
 
         opts.on("-c", "--changelog <changelog>",
           "version changelog") do |changelog|
           @changelog = changelog
         end
 
-        opts.on("-z", "--changelogfile <changelog_file>",
+        opts.on("-z", "--changelog-file <changelog_file>",
           "text file with version changelog") do |changelog_file|
           @changelog_file = changelog_file
         end
 
-        opts.on("-x", "--overwrite-draft <true | false>",
+        opts.on("-x", "--overwrite-draft",
           "should draft version be overwritten if it already exists (default: #{@overwrite_draft})") do |overwrite_draft|
-          @overwrite_draft = overwrite_draft
+          @overwrite_draft = true
         end
 
         opts.on("--import-copy-label", 'copy label from source version') do
@@ -108,7 +105,7 @@ module PatchKitTools
       validate_source_version! unless mode_files?
 
       if !draft_version.nil?
-        if @overwrite_draft != "true" && !ask_yes_or_no("Draft version already exists. Its "\
+        if !@overwrite_draft && !ask_yes_or_no("Draft version already exists. Its "\
           "contents will be overwritten. Proceed?", "y")
           exit
         end
@@ -124,7 +121,7 @@ module PatchKitTools
         import_version!(app_secret: @import_app_secret, vid: @import_version_vid)
       end
 
-      if @publish == "true"
+      if @publish
         publish_version!
         puts "This version will be published as soon as it gets processed."
       end

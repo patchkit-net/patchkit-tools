@@ -13,6 +13,8 @@ require_relative 'core/patchkit_api.rb'
 require_relative 'core/patchkit_tools.rb'
 require_relative 'core/model/app'
 
+include PatchKitTools::Model
+
 module PatchKitTools
   class DownloadVersionSignaturesTool < PatchKitTools::BaseTool
     def initialize
@@ -29,7 +31,7 @@ module PatchKitTools
           self.secret = secret
         end
 
-        opts.on("-a", "--apikey <api_key>",
+        opts.on("-a", "--api-key <api_key>",
           "user API key") do |api_key|
           self.api_key = api_key
         end

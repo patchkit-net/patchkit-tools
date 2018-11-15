@@ -5,8 +5,9 @@ require_relative 'printer'
 module PatchKitTools
   class BaseTool2
     include Printer
-    
+
     attr_reader :host
+    attr_reader :https
 
     def initialize(argv, program_name, program_description, *program_usages)
       @program_name = program_name
@@ -38,6 +39,13 @@ module PatchKitTools
         opts.separator opts.summary_indent + "patchkit-tools #{@program_name} --help"
         opts.separator ""
       end
+
+      # opts.separator "Mandatory"
+      # required_params(opts)
+
+      # opts.separator ""
+      # opts.separator "Optional"
+      # optional_params(opts)
 
       yield @opt_parser
 
@@ -105,11 +113,13 @@ module PatchKitTools
     end
 
     # Deprecated
-    def check_if_option_exists(name)
-      value = instance_variable_get("@#{name}")
+    def check_if_option_exists(*names)
+      names.each do |name|
+        value = instance_variable_get("@#{name}")
 
-      if value.nil? || (value.is_a?(String) && value.empty?)
-        raise CommandLineError, "[--#{argument_name(name)}] Missing argument"
+        if value.nil? || (value.is_a?(String) && value.empty?)
+          raise CommandLineError, "[--#{argument_name(name)}] Missing argument"
+        end
       end
     end
 
@@ -170,7 +180,7 @@ module PatchKitTools
     private
 
       def argument_name(name)
-        name.gsub('_', '-')
+        name.to_s.tr('_', '-')
       end
   end
 end

@@ -28,7 +28,7 @@ module PatchKitTools
           self.secret = secret
         end
 
-        opts.on("-a", "--apikey <api_key>",
+        opts.on("-a", "--api-key <api_key>",
           "user API key") do |api_key|
           self.api_key = api_key
         end
@@ -52,7 +52,7 @@ module PatchKitTools
           self.changelog = changelog
         end
 
-        opts.on("-z", "--changelogfile <changelog_file>",
+        opts.on("-z", "--changelog-file <changelog_file>",
           "text file with version changelog") do |changelog_file|
           self.changelog_file = changelog_file
         end

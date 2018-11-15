@@ -20,6 +20,8 @@ require 'bundler/setup'
 require 'net/http/uploadprogress'
 require 'digest'
 
+include PatchKitTools::Model
+
 module PatchKitTools
   class UploadVersionTool < PatchKitTools::BaseTool
     UPLOAD_MODES = ["content", "diff"]
@@ -44,7 +46,7 @@ module PatchKitTools
           self.secret = secret
         end
 
-        opts.on("-a", "--apikey <api_key>",
+        opts.on("-a", "--api-key <api_key>",
           "user API key") do |api_key|
           self.api_key = api_key
         end
@@ -64,7 +66,7 @@ module PatchKitTools
           self.file = file
         end
 
-        opts.on("-d", "--diffsummary <diff_summary>",
+        opts.on("-d", "--diff-summary-file <diff_summary>",
           "file with diff summary (required only when --mode=diff)") do |diff_summary|
             self.diff_summary = diff_summary
         end
@@ -73,7 +75,7 @@ module PatchKitTools
 
         opts.separator "Optional"
 
-        opts.on("-w", "--waitforjob <true | false>",
+        opts.on("-w", "--wait-for-job <true | false>",
           "should program wait for finish of version processing job (default: #{self.wait_for_job})") do |wait_for_job|
             self.wait_for_job = wait_for_job
           end

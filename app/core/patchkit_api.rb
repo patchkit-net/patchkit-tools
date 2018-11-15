@@ -75,7 +75,7 @@ module PatchKitAPI
           if response.kind_of?(Net::HTTPSuccess)
             yield response if block_given?
           else
-            raise "[#{response.code}] #{response.msg} while requesting #{@url}: #{response.body}"
+            raise APIError, "[#{response.code}] #{response.msg} while requesting #{@url}: #{response.body}"
           end
         end
       end
@@ -121,7 +121,7 @@ module PatchKitAPI
         last_status = job_status[:status]
 
         status_message = job_status[:status_message]
-        
+
         if last_status.zero?
           status_message = "Pending" if job_status[:pending]
           status_message = "Done" if job_status[:finished]

@@ -32,7 +32,7 @@ module PatchKitTools
           self.secret = secret
         end
 
-        opts.on("-a", "--apikey <api_key>",
+        opts.on("-a", "--api-key <api_key>",
           "user API key") do |api_key|
           self.api_key = api_key
         end
@@ -67,7 +67,7 @@ module PatchKitTools
       result = PatchKitAPI.post(request_path, params: { label: self.label })
 
       @created_version_id = result[:id]
-      puts "A new version of id #{@created_version_id} has been created!"
+      puts "A new version with id #{@created_version_id} has been created!"
     end
   end
 end

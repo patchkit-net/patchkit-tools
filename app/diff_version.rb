@@ -40,7 +40,7 @@ module PatchKitTools
           self.diff = diff
         end
 
-        opts.on("-m", "--diffsummary <diff_summary>",
+        opts.on("-m", "--out-diff-summary-file <diff_summary>",
           "output diff summary file") do |diff_summary|
           self.diff_summary = diff_summary
         end

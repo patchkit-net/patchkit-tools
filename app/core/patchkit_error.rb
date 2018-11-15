@@ -1,7 +1,9 @@
 module PatchKitTools
   class CommandLineError < StandardError
   end
-  class APIJobError < StandardError
+  class APIError < StandardError
+  end
+  class APIJobError < APIError
   end
   class APIPublishError < StandardError
   end
