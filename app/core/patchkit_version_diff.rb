@@ -61,7 +61,7 @@ module PatchKitVersionDiff
         end
       end
 
-      progress_bar.print(content_files.size, "All files processed!")
+      progress_bar.print(content_files.size, "All files processed!", force: true)
 
       puts "Zipping diff file..."
       

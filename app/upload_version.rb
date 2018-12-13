@@ -125,7 +125,7 @@ module PatchKitTools
       uploader.upload_file(file)
       upload_id = uploader.upload_id
 
-      progress_bar.print(file_size, "Upload done")
+      progress_bar.print(file_size, "Upload done", force: true)
 
       result = case self.mode
                when 'content'

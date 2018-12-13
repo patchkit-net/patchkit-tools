@@ -133,7 +133,7 @@ module PatchKitAPI
 
         break if job_status[:finished]
       rescue
-        progress_bar.print(last_progress, "WARNING: Cannot read job status. Will try again...")
+        progress_bar.print(last_progress, "WARNING: Cannot read job status. Will try again...", force: true)
       end
 
       request_time = Time.now - start_time
@@ -145,7 +145,7 @@ module PatchKitAPI
       raise APIJobError, "#{last_status_message}. Please visit panel.patchkit.net for more information."
     end
 
-    progress_bar.print(last_progress, last_status_message)
+    progress_bar.print(last_progress, last_status_message, force: true)
   end
 
   def self.wait_until_version_published(secret, version_id)
@@ -182,6 +182,6 @@ module PatchKitAPI
       raise APIPublishError, "Unable to publish version. Please visit panel.patchkit.net for more information."
     end
 
-    progress_bar.print(last_progress, "Version has been published!")
+    progress_bar.print(last_progress, "Version has been published!", force: true)
   end
 end

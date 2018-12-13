@@ -91,7 +91,7 @@ module PatchKitTools
 
       end # while
 
-      progress_bar.print(content_size, "Signatures downloaded.")
+      progress_bar.print(content_size, "Signatures downloaded.", force: true)
     end
   end
 end
