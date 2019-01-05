@@ -16,6 +16,7 @@ require_relative 'core/base_tool2.rb'
 module PatchKitTools
   class ListVersionsTool < PatchKitTools::BaseTool2
     attr_reader :versions_list
+    attr_writer :secret, :api_key, :display_limit, :sort_mode
 
     SORT_MODES = ["desc", "asc"]
 

@@ -72,9 +72,9 @@ module PatchKitTools
       version_list = get_versions_list
       return nil if version_list.empty?
 
-      draft_version = version_list.find { |e| e['draft'] }
+      draft_version = version_list.find { |e| e[:draft] }
       return nil if draft_version.nil?
-      draft_version['id']
+      draft_version[:id]
     end
 
     def execute

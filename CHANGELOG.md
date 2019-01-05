@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - upload_version not working with new backend version
 - content_version wrong variable name
+- publish_version invalid list-versions usage
 
 ## [3.0.1]
 ### Fixed
