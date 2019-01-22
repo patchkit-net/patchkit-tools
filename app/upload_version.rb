@@ -30,6 +30,15 @@ module PatchKitTools
     # after successful upload, you can read the result job GUID here
     attr_reader :processing_job_guid
 
+    attr_writer :secret,
+                :api_key,
+                :version,
+                :mode,
+                :file,
+                :diff_summary,
+                :wait_for_job
+
+
     def initialize(argv = ARGV)
       super(argv, "upload-version", "Uploads new version by sending content or diff.",
             "-m content -s <secret> -a <api_key> -v <version> -f <file> [optional]",
