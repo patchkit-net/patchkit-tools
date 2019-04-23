@@ -5,7 +5,11 @@ gem 'fiddle'
 gem 'mocha'
 
 group :development do
-  gem 'test-unit'
   gem 'rake'
-  #gem 'byebug'
+  gem 'byebug'
+end
+
+group :test do
+  gem 'test-unit'
+  gem 'webmock'
 end

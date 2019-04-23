@@ -1,7 +1,9 @@
 require 'net/http'
 require 'json'
-require_relative 'utils/progress_bar.rb'
-require_relative 'patchkit_config.rb'
+
+require_relative 'utils/progress_bar'
+require_relative 'patchkit_config'
+require_relative 'patchkit_error'
 
 module PatchKitAPI
   class << self
@@ -14,7 +16,7 @@ module PatchKitAPI
     end
 
     def resource_uri(path)
-      api_url = @api_url || PatchKitConfig.api_url
+      api_url = defined?(@api_url) ? @api_url : PatchKitConfig.api_url
       if path.start_with? '/'
         URI.parse("#{api_url}#{path}")
       else
@@ -57,17 +59,23 @@ module PatchKitAPI
     attr_reader :http_request
     attr_accessor :headers
     attr_accessor :form
+    attr_accessor :offset
 
     def initialize(resource_name, resource_method = Net::HTTP::Get)
       @url = PatchKitAPI.resource_uri(resource_name)
       @resource_method = resource_method
       @headers = {}
       @form = {}
+      @offset = 0
     end
 
     def get_response
       http_request = @resource_method.new(@url)
       http_request.set_form(@form, "multipart/form-data") unless @form.nil? || @form.empty?
+      if http_request['Range'].nil? && offset > 0
+        http_request['Range'] = "bytes=#{offset}-"
+      end
+
       @headers.each { |key, value| http_request[key] = value }
 
       Net::HTTP.start(@url.host, @url.port, use_ssl: @url.scheme == 'https') do |http|
@@ -75,7 +83,8 @@ module PatchKitAPI
           if response.kind_of?(Net::HTTPSuccess)
             yield response if block_given?
           else
-            raise APIError, "[#{response.code}] #{response.msg} while requesting #{@url}: #{response.body}"
+            raise PatchKitTools::APIError,
+                  "[#{response.code}] #{response.msg} while requesting #{@url}: #{response.body}"
           end
         end
       end

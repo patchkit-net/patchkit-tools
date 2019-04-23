@@ -20,6 +20,9 @@ module PatchKitTools
     def initialize(argv = ARGV)
       super(argv, "channel-make-version", "Creates a new channel version.",
             "-s <secret> -a <api_key> -l <label>")
+
+      @publish = false
+      @group_version = nil
     end
 
     def parse_options

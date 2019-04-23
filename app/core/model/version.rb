@@ -48,9 +48,10 @@ module PatchKitTools
         do_put("1/apps/#{app.secret}/versions/#{id}/diff_file", params)
       end
 
-      def download_signatures
+      def download_signatures(offset: 0)
         path = construct_path("1/apps/#{app.secret}/versions/#{id}/signatures")
         request = PatchKitAPI::ResourceRequest.new(path)
+        request.offset = offset
         request.get_response { |r| yield r }
       end
     end

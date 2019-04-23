@@ -12,14 +12,20 @@ $META_END$
 require_relative 'core/patchkit_api.rb'
 require_relative 'core/patchkit_tools.rb'
 require_relative 'core/model/app'
+require_relative 'core/base_tool2.rb'
 
 include PatchKitTools::Model
 
 module PatchKitTools
-  class DownloadVersionSignaturesTool < PatchKitTools::BaseTool
-    def initialize
-      super("download-version-signatures", "Downloads version signatures package.",
+  class DownloadVersionSignaturesTool < PatchKitTools::BaseTool2
+    def initialize(argv = ARGV)
+      super(argv, "download-version-signatures", "Downloads version signatures package.",
             "-s <secret> -a <api_key> -v <version> -o <output>")
+
+      @secret = nil
+      @api_key = nil
+      @version = nil
+      @output = nil
     end
 
     def parse_options
@@ -28,48 +34,45 @@ module PatchKitTools
 
         opts.on("-s", "--secret <secret>",
           "application secret") do |secret|
-          self.secret = secret
+          @secret = secret
         end
 
         opts.on("-a", "--api-key <api_key>",
           "user API key") do |api_key|
-          self.api_key = api_key
+          @api_key = api_key
         end
 
         opts.on("-v", "--version <version>", Integer,
           "application version") do |version|
-          self.version = version
+          @version = version
         end
 
         opts.on("-o", "--output <output>",
           "output file") do |output|
-          self.output = output
+          @output = output
         end
       end
     end
 
     def execute
-      check_if_option_exists("secret")
-      check_if_option_exists("api_key")
-      check_if_option_exists("version")
-      check_if_option_exists("output")
+      check_if_option_exists(:secret, :api_key, :version, :output)
 
-      app = App.find_by_secret!(self.secret)
-      version = Version.find_by_id!(app, self.version)
-      raise "Cannot find version: #{self.version}" if version.nil?
+      app = App.find_by_secret!(@secret)
+      version = Version.find_by_id!(app, @version)
+      raise "Cannot find version: #{@version}" if version.nil?
 
       downloaded = 0
-      content_size = -1
+      content_size = nil
       progress_bar = nil
 
       while downloaded != content_size
-
-        version.download_signatures do |response|
-          file = File.open(self.output, 'wb')
+        version.download_signatures(offset: downloaded) do |response|
+          file = File.open(@output, 'ab')
           begin
-            content_size = response.content_length
+            content_size ||= response.content_length
+            raise "Content-Length not returned by the server." if response.content_length.nil?
+
             progress_bar = ProgressBar.new(content_size)
-            downloaded = 0
 
             response.read_body do |segment|
               file.write segment
@@ -84,8 +87,9 @@ module PatchKitTools
           end
 
           if downloaded != content_size
-            puts "Error while downloading signatures. Will try again in 30 seconds..."
-            sleep 30
+            puts "Error while downloading signatures. Will try again in 5 seconds..."
+            sleep 5
+            break # makes sure to exit download_signatures block
           end
         end
 
