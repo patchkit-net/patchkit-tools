@@ -29,7 +29,8 @@ RUN ./configure --with-jemalloc && \
     rm -rf /ruby-2.1.9
 
 # Install bundler
-RUN gem install bundler rb-readline
+RUN gem install bundler -v 1.17.1
+RUN gem install rb-readline
 
 RUN mkdir -p /workdir
 WORKDIR /workdir
