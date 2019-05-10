@@ -18,6 +18,8 @@ include PatchKitTools::Model
 
 module PatchKitTools
   class DownloadVersionSignaturesTool < PatchKitTools::BaseTool2
+    attr_writer :secret, :api_key, :version, :output
+
     def initialize(argv = ARGV)
       super(argv, "download-version-signatures", "Downloads version signatures package.",
             "-s <secret> -a <api_key> -v <version> -o <output>")
@@ -61,16 +63,19 @@ module PatchKitTools
       version = Version.find_by_id!(app, @version)
       raise "Cannot find version: #{@version}" if version.nil?
 
+      raise CommandLineError, "Output file exists: #{@output}" if File.exist? @output
+
       downloaded = 0
       content_size = nil
       progress_bar = nil
 
       while downloaded != content_size
         version.download_signatures(offset: downloaded) do |response|
+
           file = File.open(@output, 'ab')
           begin
             content_size ||= response.content_length
-            raise "Content-Length not returned by the server." if response.content_length.nil?
+            raise "Content-Length not returned by the server." if content_size.nil?
 
             progress_bar = ProgressBar.new(content_size)
 
@@ -82,6 +87,8 @@ module PatchKitTools
                 "Downloading signature - %.2f MB out of %.2f MB" %
                 [downloaded / 1024.0 / 1024.0, content_size / 1024.0 / 1024.0])
             end
+          rescue EOFError => e
+            puts "Error: #{e.message}"
           ensure
             file.close
           end

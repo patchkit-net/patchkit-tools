@@ -1,3 +1,5 @@
+require 'uri'
+
 require_relative 'abstract_model'
 
 module PatchKitTools
@@ -49,10 +51,19 @@ module PatchKitTools
       end
 
       def download_signatures(offset: 0)
-        path = construct_path("1/apps/#{app.secret}/versions/#{id}/signatures")
-        request = PatchKitAPI::ResourceRequest.new(path)
-        request.offset = offset
-        request.get_response { |r| yield r }
+        path = construct_path("1/apps/#{app.secret}/versions/#{id}/signatures/url")
+        resp = PatchKitAPI.get(path)
+        url = resp[:url]
+
+        uri = URI(url)
+        Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == 'https') do |http|
+          request = Net::HTTP::Get.new uri
+          request['Range'] = "bytes=#{offset}-" if offset > 0
+
+          http.request request do |response|
+            yield response
+          end
+        end
       end
     end
   end
