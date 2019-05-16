@@ -15,6 +15,7 @@ require_relative 'core/base_tool2.rb'
 require_relative 'core/utils/s3_uploader'
 require_relative 'core/utils/speed_calculator'
 require_relative 'core/model/app'
+require_relative 'core/patchkit_config'
 
 require 'rubygems'
 require 'bundler/setup'
@@ -51,6 +52,8 @@ module PatchKitTools
       @mode = nil
       @file = nil
       @diff_summary = nil
+      @retry_count = PatchKitConfig.upload_retry_count
+      @ask_to_try_again = PatchKitConfig.upload_ask_to_try_again
     end
 
     def parse_options
@@ -94,7 +97,16 @@ module PatchKitTools
         opts.on("-w", "--wait-for-job <true | false>",
           "should program wait for finish of version processing job (default: #{@wait_for_job})") do |wait_for_job|
             @wait_for_job = wait_for_job
-          end
+        end
+
+        opts.on("-r", "--retry <count>", "Number of retries (default: #{@retry_count})") do |val|
+          @retry_count = val.to_i
+        end
+
+        opts.on("--ask-to-try-again <true | false>",
+                "Ask to try again if all attempts have failed (default: #{@ask_to_try_again})") do |val|
+          @ask_to_try_again = val == "true"
+        end
       end
     end
 
@@ -138,7 +150,28 @@ module PatchKitTools
         progress_bar.print(bytes_sent, text)
       end
 
-      uploader.upload_file(@file)
+      loop do
+        begin
+          3.times { puts }
+          uploader.upload_file(@file)
+          break
+        rescue => e
+          puts
+          puts "Error during file upload: #{e}"
+          @retry_count -= 1
+          if @retry_count < 0
+            if @ask_to_try_again
+              if ask_yes_or_no("Try again?", 'y')
+                next
+              else
+                raise CommandLineError, "Couldn't upload the file"
+              end
+            else
+              raise CommandLineError, "Couldn't upload the file"
+            end
+          end
+        end
+      end
       upload_id = uploader.upload_id
 
       progress_bar.print(file_size, "Upload done", force: true)

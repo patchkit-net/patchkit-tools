@@ -15,3 +15,9 @@
 
 # Upload chunk size in bytes
 # upload_chunk_size: 33554432
+
+# Uploading retry count before giving up
+# upload_retry_count: 2
+
+# Should the upload script ask to try again after retry count has been reached?
+# upload_ask_to_try_again: true

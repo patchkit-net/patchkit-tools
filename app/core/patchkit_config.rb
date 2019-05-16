@@ -26,7 +26,7 @@ module PatchKitConfig
     end
 
     def include?(key)
-      [:debug, :api_url, :upload_chunk_size].include? key.to_sym
+      [:debug, :api_url, :upload_chunk_size, :upload_retry_count, :upload_ask_to_try_again].include? key.to_sym
     end
 
     def value(key)
@@ -49,6 +49,14 @@ module PatchKitConfig
 
     def default_upload_chunk_size
       33_554_432 # 32 megabytes
+    end
+
+    def default_upload_retry_count
+      3
+    end
+
+    def default_upload_ask_to_try_again
+      true
     end
   end
 
