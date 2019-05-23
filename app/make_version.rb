@@ -284,13 +284,13 @@ module PatchKitTools
     end
 
     def interactive?
-      !@files && !@import_app_secret
+      !@import_app_secret
     end
 
     def interactive_ask
       ask_if_option_missing!("secret")
       ask_if_option_missing!("api_key")
-      ask_if_option_missing!("label") if mode_import?
+      ask_if_option_missing!("label")
       ask_if_option_missing!("files")
     end
 
