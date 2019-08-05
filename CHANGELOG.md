@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [3.1.0]
 ### Added
 - Version uploading can now retry on failure
+- StartTools.lnk for Windows
 
 ## [3.0.3]
 ### Added

@@ -92,6 +92,8 @@ def create_package(target, os_type = :unix)
 
     sh "cp packaging/patchkit-tools #{package_dir}/patchkit-tools"
   else
+    sh "cp packaging/StartTools.Ink #{package_dir}/StartTools.Ink"
+    sh "cp packaging/setenv.bat #{package_dir}/setenv.bat"
     sh "cp packaging/patchkit-tools.bat #{package_dir}/patchkit-tools.bat"
   end
 
