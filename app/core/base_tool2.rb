@@ -107,6 +107,8 @@ module PatchKitTools
       if instance_variable_get("@#{name}").nil?
         result = ask("Please enter --#{argument_name(name)}")
         instance_variable_set("@#{name}", result)
+
+        PatchKitAPI.api_key = @api_key if name.to_s == 'api_key'
       end
 
       check_if_option_exists(name)
