@@ -60,11 +60,12 @@ module PatchKitTools
 
       request_path = "1/apps/#{self.secret}/versions?api_key=#{self.api_key}"
 
-      request_form["changelog"] = self.changelog unless self.changelog.nil?
+      params = { label: self.label }
+      params[:changelog] = self.changelog unless self.changelog.nil?
 
       puts "Creating version..."
 
-      result = PatchKitAPI.post(request_path, params: { label: self.label })
+      result = PatchKitAPI.post(request_path, params: params)
 
       @created_version_id = result[:id]
       puts "A new version with id #{@created_version_id} has been created!"
