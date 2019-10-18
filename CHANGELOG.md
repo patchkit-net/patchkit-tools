@@ -4,12 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [UNRELEASED]
+## [3.1.1]
 ### Changed
 - Switched API communication to HTTPS by default
 
 ### Fixed
-- signatures downloading exception
+- Signatures downloading exception
 - create-version raising exception on -c param (fixes #1279)
 
 ## [3.1.0]
