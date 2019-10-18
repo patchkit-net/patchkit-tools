@@ -44,7 +44,7 @@ module PatchKitConfig
     end
 
     def default_api_url
-      'https://api.patchkit.net'
+      'http://api.patchkit.net'
     end
 
     def default_upload_chunk_size

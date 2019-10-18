@@ -5,9 +5,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [3.1.1]
-### Changed
-- Switched API communication to HTTPS by default
-
 ### Fixed
 - Signatures downloading exception
 - create-version raising exception on -c param (fixes #1279)
