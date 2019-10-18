@@ -68,41 +68,59 @@ module PatchKitTools
       downloaded = 0
       content_size = nil
       progress_bar = nil
+      finished = false
 
-      while downloaded != content_size
+      while !finished
         version.download_signatures(offset: downloaded) do |response|
 
           file = File.open(@output, 'ab')
           begin
             content_size ||= response.content_length
-            raise "Content-Length not returned by the server." if content_size.nil?
-
-            progress_bar = ProgressBar.new(content_size)
+            # raise "Content-Length not returned by the server." if content_size.nil?
 
             response.read_body do |segment|
               file.write segment
 
               downloaded += segment.bytesize
-              progress_bar.print(downloaded,
-                "Downloading signature - %.2f MB out of %.2f MB" %
-                [downloaded / 1024.0 / 1024.0, content_size / 1024.0 / 1024.0])
+
+              if content_size
+                progress_bar ||= ProgressBar.new(content_size)
+                progress_bar.print(downloaded,
+                  "Downloading signatures - %.2f MiB out of %.2f MiB" %
+                  [downloaded / 1024.0 / 1024.0, content_size / 1024.0 / 1024.0])
+              else
+                print "\rDownloading signatures - %.2f MiB" % [downloaded / 1024.0 / 1024.0]
+              end
             end
           rescue EOFError => e
             puts "Error: #{e.message}"
           ensure
             file.close
+            puts
           end
 
-          if downloaded != content_size
-            puts "Error while downloading signatures. Will try again in 5 seconds..."
-            sleep 5
-            break # makes sure to exit download_signatures block
+          # Read last 1 kilobyte of files to search for end of central directory signature
+          # It's to make sure that the zip file has been downloaded correctly
+          File.open(@output, 'rb') do |f|
+            f.pos = [0, File.size(@output) - 1024].max
+            data = f.read(1024)
+            unless data.include? "\x50\x4b\x05\x06"
+              puts "Error while downloading signatures. Will try again in 5 seconds..."
+              sleep 5
+              break # makes sure to exit download_signatures block
+            end
           end
+
+          finished = true
         end
 
       end # while
 
-      progress_bar.print(content_size, "Signatures downloaded.", force: true)
+      if progress_bar
+        progress_bar.print(content_size, "Signatures downloaded.", force: true)
+      else
+        puts "Signatures downloaded."
+      end
     end
   end
 end
