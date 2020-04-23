@@ -1,8 +1,11 @@
 require_relative '../patchkit_api'
+require_relative '../utils/retry'
 
 module PatchKitTools
   module Model
     class AbstractModel
+      RETRY_ERRORS = [Errno::ECONNRESET, Errno::ECONNABORTED, Errno::EPROTO]
+
       def initialize(path)
         @path = path
         @dirty = []
@@ -17,19 +20,19 @@ module PatchKitTools
       end
 
       def do_get(path)
-        PatchKitAPI.get(construct_path(path))
+        Retry.on(*RETRY_ERRORS) { PatchKitAPI.get(construct_path(path)) }
       end
 
       def do_post(path, params)
-        PatchKitAPI.post(construct_path(path), params: params)
+        Retry.on(*RETRY_ERRORS) { PatchKitAPI.post(construct_path(path), params: params) }
       end
 
       def do_put(path, params)
-        PatchKitAPI.put(construct_path(path), params: params)
+        Retry.on(*RETRY_ERRORS) { PatchKitAPI.put(construct_path(path), params: params) }
       end
 
       def save!
-        PatchKitAPI.patch(construct_path(@path), params: dirty_params)
+        Retry.on(*RETRY_ERRORS) { PatchKitAPI.patch(construct_path(@path), params: dirty_params) }
         @dirty = []
       end
 
