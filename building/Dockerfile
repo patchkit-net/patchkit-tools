@@ -24,7 +24,7 @@ RUN wget https://cache.ruby-lang.org/pub/ruby/2.1/ruby-2.1.9.tar.gz -O ruby.tar.
 WORKDIR /ruby-2.1.9
 
 RUN ./configure --with-jemalloc && \
-    make -j 2 && \
+    make -j 4 && \
     make install && \
     rm -rf /ruby-2.1.9
 
