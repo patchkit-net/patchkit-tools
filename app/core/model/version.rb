@@ -54,14 +54,30 @@ module PatchKitTools
         path = construct_path("1/apps/#{app.secret}/versions/#{id}/signatures/url")
         resp = PatchKitAPI.get(path)
         url = resp[:url]
+        size = resp[:size]
 
-        uri = URI(url)
-        Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == 'https') do |http|
-          request = Net::HTTP::Get.new uri
-          request['Range'] = "bytes=#{offset}-" if offset > 0
+        part_size = 1024**2 * 512
+        parts = size / part_size
+        parts += 1 if size % part_size != 0
 
-          http.request request do |response|
-            yield response
+        parts.times do |part|
+          url = "#{url}.#{part}" unless part.zero?
+          uri = URI(url)
+
+          part_start = part * part_size
+          part_end = (part + 1) * part_size - 1
+
+          if offset <= part_end
+            part_offset = [offset - part_start, 0].max
+
+            Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == 'https') do |http|
+              request = Net::HTTP::Get.new uri
+              request['Range'] = "bytes=#{part_offset}-" if part_offset > 0
+
+              http.request request do |response|
+                yield response, size
+              end
+            end
           end
         end
       end

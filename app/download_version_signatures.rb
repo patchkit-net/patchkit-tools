@@ -71,11 +71,11 @@ module PatchKitTools
       finished = false
 
       while !finished
-        version.download_signatures(offset: downloaded) do |response|
+        version.download_signatures(offset: downloaded) do |response, size|
 
           file = File.open(@output, 'ab')
           begin
-            content_size ||= response.content_length
+            content_size ||= size
             # raise "Content-Length not returned by the server." if content_size.nil?
 
             response.read_body do |segment|

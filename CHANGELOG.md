@@ -5,7 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [3.1.3]
-## Changed
+### Fixed
+- Downloading of signatures bigger than 512 megabytes
+
+### Changed
 - If clearning up signatures fails, now there's a warning instead of an exception
 
 
