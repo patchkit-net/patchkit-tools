@@ -1,3 +1,5 @@
+require 'fileutils'
+
 require_relative 'printer'
 
 # Base class for every tool
@@ -177,6 +179,20 @@ module PatchKitTools
 
       def raise_error(message)
         raise CommandLineError, message
+      end
+
+      def mktmpdir
+        dir = Dir.mktmpdir
+        begin
+          yield dir
+        ensure
+          begin
+            FileUtils.rm_rf dir
+          rescue => e
+            puts "Error removing directory #{dir}: #{e.message}"
+            puts "Make sure to clean it up manually afterwards!"
+          end
+        end
       end
 
     private

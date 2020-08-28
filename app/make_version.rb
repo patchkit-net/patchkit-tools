@@ -200,7 +200,7 @@ module PatchKitTools
     end
 
     def upload_version_diff
-      Dir.mktmpdir do |temp_dir|
+      mktmpdir do |temp_dir|
         previous_version_id = draft_version_id - 1
 
         signatures_package = "#{temp_dir}/#{@secret}_signatures_#{previous_version_id}.zi_"
