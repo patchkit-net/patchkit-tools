@@ -102,6 +102,10 @@ module PatchKitTools
       interactive_ask if interactive?
       validate_input!
 
+      if app.is_channel
+        raise_error "Cannot upload directly to a channel. Please use a group instead."
+      end
+
       validate_source_version! unless mode_files?
 
       if !draft_version.nil?
