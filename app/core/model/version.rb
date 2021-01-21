@@ -50,11 +50,16 @@ module PatchKitTools
         do_put("1/apps/#{app.secret}/versions/#{id}/diff_file", params)
       end
 
-      def download_signatures(offset: 0)
+      def download_signatures(offset: 0, &block)
         path = construct_path("1/apps/#{app.secret}/versions/#{id}/signatures/url")
         resp = PatchKitAPI.get(path)
         url = resp[:url]
         size = resp[:size]
+
+        if size.zero?
+          puts "Cannot download signatures using CDN, falling back to slow direct download"
+          return download_signatures_fallback(offset: 0, &block)
+        end
 
         part_size = 1024**2 * 512
         parts = size / part_size
@@ -80,6 +85,13 @@ module PatchKitTools
             end
           end
         end
+      end
+
+      def download_signatures_fallback(offset: 0)
+        path = construct_path("1/apps/#{app.secret}/versions/#{id}/signatures")
+        request = PatchKitAPI::ResourceRequest.new(path)
+        request.offset = offset
+        request.get_response { |r| yield r }
       end
     end
   end

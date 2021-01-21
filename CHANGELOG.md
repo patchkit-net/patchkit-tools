@@ -7,10 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [3.1.3]
 ### Fixed
 - Downloading of signatures bigger than 512 megabytes
+- Fallback to old signatures downloading method if needed
 
 ### Changed
-- If clearning up signatures fails, now there's a warning instead of an exception
-
+- If cleaning up signatures fails, now there's a warning instead of an exception
 
 ## [3.1.2]
 ## Added
