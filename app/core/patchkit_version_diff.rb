@@ -64,9 +64,10 @@ module PatchKitVersionDiff
       progress_bar.print(content_files.size, "All files processed!", force: true)
 
       puts "Zipping diff file..."
-      
-      ZipHelper.zip(output_file, archive_files)
-      puts "Done!"
+
+      Stopwatch.measure(label: "Zipping") do
+        ZipHelper.zip(output_file, archive_files)
+      end
 
       return get_diff_summary(
         add_slashes_to_empty_dirs(files_dir, content_files),
