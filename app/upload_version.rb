@@ -137,12 +137,12 @@ module PatchKitTools
         speed_calculator.submit(bytes_sent)
 
         text = if speed_calculator.ready?
-                 format("Uploading %.2f MB out of %.2f MB (%.2f MB/s)",
+                 format("Uploading %.2f MB of %.2f MB (%.2f MB/s)",
                         bytes_sent / 1024.0**2,
                         bytes_total / 1024.0**2,
                         speed_calculator.speed_per_second / 1024.0**2)
                else
-                 format("Uploading %.2f MB out of %.2f MB",
+                 format("Uploading %.2f MB of %.2f MB",
                         bytes_sent / 1024.0**2,
                         bytes_total / 1024.0**2)
                end
