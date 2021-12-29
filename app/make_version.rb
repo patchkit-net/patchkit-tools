@@ -103,7 +103,8 @@ module PatchKitTools
       validate_input!
 
       if app.is_channel
-        raise_error "Cannot upload directly to a channel. Please use a group instead."
+        raise_error "Cannot upload directly to a channel. You can upload the content to a group or use "\
+                    "channel-make-version to create a new channel version."
       end
 
       validate_source_version! unless mode_files?
@@ -181,7 +182,7 @@ module PatchKitTools
     end
 
     def upload_version_content
-      Dir.mktmpdir do |temp_dir|
+      mktmpdir do |temp_dir|
         content_package = "#{temp_dir}/#{@secret}_content_#{draft_version_id}.zi_"
 
         content_version_tool = PatchKitTools::ContentVersionTool.new
