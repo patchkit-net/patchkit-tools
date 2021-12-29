@@ -4,5 +4,6 @@ build:
 	sudo rm -f packaging/output/*.zip
 	
 	docker build -t $(IMAGE) -f building/Dockerfile .
+	docker run -it --rm -v $(PWD):/workdir $(IMAGE) bundle install
 	docker run -it --rm -v $(PWD):/workdir $(IMAGE) rake -v package
 	@echo All done! You may find zip files in packaging/output directory

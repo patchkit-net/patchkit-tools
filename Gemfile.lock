@@ -13,8 +13,8 @@ GEM
       metaclass (~> 0.0.1)
     net-http-uploadprogress (2.0.0)
     power_assert (1.1.1)
-    public_suffix (3.0.3)
-    rubyzip (1.2.1)
+    public_suffix (3.1.1)
+    rubyzip (2.3.2)
     safe_yaml (1.0.5)
     test-unit (3.2.7)
       power_assert
@@ -36,4 +36,4 @@ DEPENDENCIES
   webmock
 
 BUNDLED WITH
-   1.17.1
+   1.17.2

@@ -17,16 +17,16 @@ RUN apt-get update && apt-get install -y \
     curl \
     zip
 
-RUN wget https://cache.ruby-lang.org/pub/ruby/2.1/ruby-2.1.9.tar.gz -O ruby.tar.gz && \
+RUN wget https://cache.ruby-lang.org/pub/ruby/2.4/ruby-2.4.10.tar.gz -O ruby.tar.gz && \
     tar xvzf ruby.tar.gz && \
     rm -f ruby.tar.gz
 
-WORKDIR /ruby-2.1.9
+WORKDIR /ruby-2.4.10
 
 RUN ./configure --with-jemalloc && \
     make -j 4 && \
     make install && \
-    rm -rf /ruby-2.1.9
+    rm -rf /ruby-2.4.10
 
 # Install bundler
 RUN gem install bundler -v 1.17.1

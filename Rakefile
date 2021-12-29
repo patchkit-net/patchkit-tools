@@ -3,20 +3,20 @@ require 'rake/testtask'
 require 'bundler/setup'
 
 PACKAGE_NAME = "patchkit-tools"
-TRAVELING_RUBY_VERSION = "20150210-2.1.5"
+TRAVELING_RUBY_VERSION = "20210206-2.4.10"
 RUBY_DIRECTORY = "packaging/ruby"
 VENDOR_DIRECTORY = "packaging/vendor"
 TEMP_GEMS_DIRECTORY = "packaging/temp_gems"
 
 desc "Package patchkit-tools"
-task :package => ['package:linux:x86', 'package:linux:x86_64', 'package:osx', 'package:win32']
+task :package => ['package:linux:x86_64', 'package:osx', 'package:win32']
 
 namespace :package do
   namespace :linux do
-    desc "Package patchkit-tools for Linux x86"
-    task :x86 => [:bundle_install, "#{RUBY_DIRECTORY}/traveling-ruby-#{TRAVELING_RUBY_VERSION}-linux-x86.tar.gz"] do
-      create_package("linux-x86")
-    end
+    # desc "Package patchkit-tools for Linux x86"
+    # task :x86 => [:bundle_install, "#{RUBY_DIRECTORY}/traveling-ruby-#{TRAVELING_RUBY_VERSION}-linux-x86.tar.gz"] do
+    #   create_package("linux-x86")
+    # end
 
     desc "Package patchkit-tools for Linux x86_64"
     task :x86_64 => [:bundle_install, "#{RUBY_DIRECTORY}/traveling-ruby-#{TRAVELING_RUBY_VERSION}-linux-x86_64.tar.gz"] do
@@ -30,14 +30,14 @@ namespace :package do
   end
 
   desc "Package patchkit-tools for Windows x86"
-  task :win32 => [:bundle_install, "#{RUBY_DIRECTORY}/traveling-ruby-#{TRAVELING_RUBY_VERSION}-win32.tar.gz"] do
-    create_package("win32", :windows)
+  task :win32 => [:bundle_install, "#{RUBY_DIRECTORY}/traveling-ruby-#{TRAVELING_RUBY_VERSION}-x86_64-win32.tar.gz"] do
+    create_package("x86_64-win32", :windows)
   end
 
   desc "Install gems to local directory"
   task :bundle_install do
-    if RUBY_VERSION !~ /^2\.1\./
-      abort "You can only 'bundle install' using Ruby 2.1, because that's what Traveling Ruby uses."
+    if RUBY_VERSION !~ /^2\.4\.10/s
+      abort "You can only 'bundle install' using Ruby 2.4.10, because that's what Traveling Ruby uses."
     end
     sh "rm -rf #{TEMP_GEMS_DIRECTORY}"
     sh "rm -rf #{VENDOR_DIRECTORY}"
@@ -52,10 +52,6 @@ namespace :package do
   end
 end
 
-file "#{RUBY_DIRECTORY}/traveling-ruby-#{TRAVELING_RUBY_VERSION}-linux-x86.tar.gz" do
-  download_runtime("linux-x86")
-end
-
 file "#{RUBY_DIRECTORY}/traveling-ruby-#{TRAVELING_RUBY_VERSION}-linux-x86_64.tar.gz" do
   download_runtime("linux-x86_64")
 end
@@ -64,8 +60,8 @@ file "#{RUBY_DIRECTORY}/traveling-ruby-#{TRAVELING_RUBY_VERSION}-osx.tar.gz" do
   download_runtime("osx")
 end
 
-file "#{RUBY_DIRECTORY}/traveling-ruby-#{TRAVELING_RUBY_VERSION}-win32.tar.gz" do
-  download_runtime("win32")
+file "#{RUBY_DIRECTORY}/traveling-ruby-#{TRAVELING_RUBY_VERSION}-x86_64-win32.tar.gz" do
+  download_runtime("x86_64-win32")
 end
 
 def create_package(target, os_type = :unix)
@@ -85,10 +81,10 @@ def create_package(target, os_type = :unix)
   if os_type == :unix
     # Hack to get paths containing spaces to behave correctly
     # @see https://github.com/phusion/traveling-ruby/issues/38
-    sh %Q{sed -i 's|RUBYOPT=\\\\"-r$ROOT/lib/restore_environment\\\\"|RUBYOPT=\\\\"-rrestore_environment\\\\"|' '#{package_dir}/ruby/bin/ruby_environment'}
-    sh %Q{sed -i 's|GEM_HOME="$ROOT/lib/ruby/gems/2.1.0"|GEM_HOME=\\\\"$ROOT/lib/ruby/gems/2.1.0\\\\"|' '#{package_dir}/ruby/bin/ruby_environment'}
-    sh %Q{sed -i 's|GEM_PATH="$ROOT/lib/ruby/gems/2.1.0"|GEM_PATH=\\\\"$ROOT/lib/ruby/gems/2.1.0\\\\"|' '#{package_dir}/ruby/bin/ruby_environment'}
-    sh "mv #{package_dir}/ruby/lib/restore_environment.rb #{package_dir}/ruby/lib/ruby/2.1.0/restore_environment.rb"
+    # sh %Q{sed -i 's|RUBYOPT=\\\\"-r$ROOT/lib/restore_environment\\\\"|RUBYOPT=\\\\"-rrestore_environment\\\\"|' '#{package_dir}/ruby/bin/ruby_environment'}
+    # sh %Q{sed -i 's|GEM_HOME="$ROOT/lib/ruby/gems/2.4.10"|GEM_HOME=\\\\"$ROOT/lib/ruby/gems/2.4.10\\\\"|' '#{package_dir}/ruby/bin/ruby_environment'}
+    # sh %Q{sed -i 's|GEM_PATH="$ROOT/lib/ruby/gems/2.4.10"|GEM_PATH=\\\\"$ROOT/lib/ruby/gems/2.4.10\\\\"|' '#{package_dir}/ruby/bin/ruby_environment'}
+    # sh "mv #{package_dir}/ruby/lib/restore_environment.rb #{package_dir}/ruby/lib/ruby/2.4.10/restore_environment.rb"
 
     sh "cp packaging/patchkit-tools #{package_dir}/patchkit-tools"
   else
