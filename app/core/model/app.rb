@@ -15,7 +15,13 @@ module PatchKitTools
 
       def versions
         versions = do_get("1/apps/#{secret}/versions")
-        versions.map! { |v| Version.new(self, v) }
+        versions.map { |v| Version.new(self, v) }
+      end
+
+      def published_versions
+        versions = do_get("1/apps/#{secret}/versions")
+        versions = versions.select { |v| v[:published] }
+        versions.map { |v| Version.new(self, v) }
       end
 
       def group

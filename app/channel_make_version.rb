@@ -45,11 +45,11 @@ module PatchKitTools
         end
 
         opts.on("--group-version <version>", Integer,
-                "group version id") { |v| @group_version = v }
+                "group version id to link from") { |v| @group_version = v }
 
         opts.on("-x", "--overwrite-draft", "overwrites existing draft") { @overwrite = true }
 
-        opts.on("-p", "--publish", "publish after finished") { @publish = true }
+        opts.on("-p", "--publish", "publish/persist when done") { @publish = true }
       end
     end
 
@@ -59,7 +59,7 @@ module PatchKitTools
       raise_error "not a channel" unless app.is_channel?
 
       group = app.group
-      versions = group.versions
+      versions = group.published_versions
 
       source_version =
         if @group_version
