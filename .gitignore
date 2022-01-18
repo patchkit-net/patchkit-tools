@@ -5,3 +5,5 @@
 /.byebug_history
 /.idea/
 .DS_Store
+/vendor/
+/jruby-9.2.13.0/

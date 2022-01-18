@@ -26,7 +26,7 @@ module PatchKitConfig
     end
 
     def include?(key)
-      [:debug, :api_url, :upload_chunk_size, :upload_retry_count, :upload_ask_to_try_again].include? key.to_sym
+      [:debug, :api_url, :upload_chunk_size, :upload_retry_count, :upload_ask_to_try_again, :rdiff_thread_count].include? key.to_sym
     end
 
     def value(key)
@@ -57,6 +57,10 @@ module PatchKitConfig
 
     def default_upload_ask_to_try_again
       true
+    end
+
+    def default_rdiff_thread_count
+      4
     end
   end
 

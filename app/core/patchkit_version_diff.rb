@@ -1,6 +1,9 @@
+require 'thread'
+
 require_relative 'utils/librsync.rb'
 require_relative 'utils/zip_helper.rb'
 require_relative 'utils/file_helper.rb'
+require_relative 'utils/thread_pool.rb'
 
 module PatchKitVersionDiff
   def self.get_diff_summary(content_files, signature_files, output_file_size)
@@ -35,31 +38,46 @@ module PatchKitVersionDiff
       progress_bar = ProgressBar.new(content_files.size)
 
       file_number = 0
-      content_files.each do |content_file|
-        file_number += 1
-        progress_bar.print(file_number, "Processing file #{file_number} of #{content_files.size}")
 
+      pool = ThreadPool.new(size: PatchKitConfig.rdiff_thread_count)
+      semaphore = Mutex.new
+
+      content_files.each do |content_file|
         content_file_abs = File.join(files_dir, content_file)
 
         next unless File.file? content_file_abs
 
         if signature_files.include? content_file
           # File changed, add delta
-          signature_file_abs = File.join(signatures_dir, content_file)
+          pool.enqueue do
+            semaphore.synchronize do
+              file_number += 1
+              progress_bar.print(file_number, "Processing file #{file_number} of #{content_files.size}")
+            end
 
-          delta_file_abs = File.join(temp_dir, content_file)
-          delta_file_abs_dir = File.dirname(delta_file_abs)
+            signature_file_abs = File.join(signatures_dir, content_file)
 
-          FileUtils.mkdir_p delta_file_abs_dir unless File.directory?(delta_file_abs_dir)
+            delta_file_abs = File.join(temp_dir, content_file)
+            delta_file_abs_dir = File.dirname(delta_file_abs)
 
-          Librsync.rs_rdiff_delta(signature_file_abs, content_file_abs, delta_file_abs)
+            FileUtils.mkdir_p delta_file_abs_dir unless File.directory?(delta_file_abs_dir)
 
-          archive_files[delta_file_abs] = content_file
+            Librsync.rs_rdiff_delta(signature_file_abs, content_file_abs, delta_file_abs)
+
+            semaphore.synchronize do
+              archive_files[delta_file_abs] = content_file
+            end
+          end
         else
+          file_number += 1
+          progress_bar.print(file_number, "Processing file #{file_number} of #{content_files.size}")
+
           # File added, add content
           archive_files[content_file_abs] = content_file
         end
       end
+
+      pool.execute
 
       progress_bar.print(content_files.size, "All files processed!", force: true)
 
