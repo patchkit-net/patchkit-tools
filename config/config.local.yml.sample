@@ -21,3 +21,6 @@
 
 # Should the upload script ask to try again after retry count has been reached?
 # upload_ask_to_try_again: true
+
+# The number of threads to use when building a diff file
+# rdiff_thread_count: 4
