@@ -1,6 +1,6 @@
 class ThreadPool
   def initialize(size:)
-    @size = [[size, 1].min, 32].max
+    @size = [[size, 1].max, 32].min
     @semaphore = Mutex.new
     @jobs = Queue.new
   end
