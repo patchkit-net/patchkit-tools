@@ -88,6 +88,11 @@ module PatchKitTools
           @overwrite_draft = true
         end
 
+        opts.on("-m", "--mode <mode>",
+          "upload mode; #{UploadVersionTool::UPLOAD_MODES.join(", ")}") do |mode|
+          @mode = mode
+        end
+
         opts.on("--import-copy-label", 'copy label from source version') do
           @import_copy_label = true
         end
@@ -319,6 +324,9 @@ module PatchKitTools
           raise_error "--changelog not allowed when --import-copy-changelog is set"
         end
       end
+
+      @mode ||= 'diff'
+      check_if_valid_option_value("mode", UploadVersionTool::UPLOAD_MODES)
     end
 
     def mode_files?
@@ -334,7 +342,14 @@ module PatchKitTools
         puts "There's no previous version. All of the files content will be uploaded"
         upload_version_content
       else
-        upload_version_diff
+        case @mode.to_s.strip
+        when 'content'
+          upload_version_content
+        when 'diff'
+          upload_version_diff
+        else
+          raise_error "Unknown upload mode: #{@mode}"
+        end
       end
     end
   end
