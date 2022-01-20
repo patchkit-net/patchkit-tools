@@ -9,7 +9,7 @@ class ProgressBar
     @lines_taken = 0
     @semaphore = Mutex.new
     @last_print_time = 0
-    @limit_per_second = 2
+    @limit_per_second = 10
   end
 
   def print(progress, status, force: false)
