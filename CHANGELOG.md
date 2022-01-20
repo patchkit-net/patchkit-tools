@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [3.1.4]
+### Added
+- Multithreaded diff processing
+- `--mode` parameter to `make-version`
+
+### Changed
+- Updated traveling ruby to 2.4.10
+
+### Fixed
+- `channel-make-version` should link published versions only
+
 ## [3.1.3]
 ### Fixed
 - Downloading of signatures bigger than 512 megabytes
