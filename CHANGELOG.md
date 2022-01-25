@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - S3 Uploader now tries to retry the upload on failure
 
+### Fixed
+- Windows: in some cases when the currently signed-in user name had more than 8 characters, the uploaded package was corrupted.
+
 ## [3.1.4]
 ### Added
 - Multithreaded diff processing

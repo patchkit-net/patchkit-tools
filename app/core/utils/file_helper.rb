@@ -2,7 +2,10 @@ module FileHelper
   # Lists all files in directory and returns their relative path
   def self.list_relative(dir)
     dir = dir.gsub('\\','/')
-    dir_path = Pathname.new(dir)
+
+    long_dir_path = Dir.glob(dir).first # takes care of DIRNAM~1-like directory names on windows
+    dir_path = Pathname.new(long_dir_path)
+
     all_files = Dir.glob("#{dir}/**/*", File::FNM_DOTMATCH)
     all_files = all_files.reject do |p|
       p == '.' || p == '..' || p.end_with?('/.') || p.end_with?('/..')
