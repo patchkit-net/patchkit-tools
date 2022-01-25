@@ -52,7 +52,7 @@ module PatchKitVersionDiff
           pool.enqueue do
             semaphore.synchronize do
               file_number += 1
-              progress_bar.print(file_number, "Processing file #{file_number} of #{content_files.size}")
+              progress_bar.print(file_number, "Preparing file #{file_number} of #{content_files.size}")
             end
 
             signature_file_abs = File.join(signatures_dir, content_file)
@@ -70,7 +70,7 @@ module PatchKitVersionDiff
           end
         else
           file_number += 1
-          progress_bar.print(file_number, "Processing file #{file_number} of #{content_files.size}")
+          progress_bar.print(file_number, "Preparing file #{file_number} of #{content_files.size}")
 
           # File added, add content
           archive_files[content_file_abs] = content_file
