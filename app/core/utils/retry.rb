@@ -19,6 +19,8 @@ class Retry
         sleep pause_seconds
 
         retry
+      else
+        raise
       end
     end
   end

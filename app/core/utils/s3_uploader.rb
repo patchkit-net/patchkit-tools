@@ -1,5 +1,6 @@
 require 'securerandom'
 require_relative 'limited_reader'
+require_relative 'retry'
 require_relative '../patchkit_api'
 
 module PatchKitTools
@@ -76,25 +77,29 @@ module PatchKitTools
       end
 
       def upload_to_s3(uri, io, size)
-        http = Net::HTTP.new(uri.host, uri.port)
-        http.use_ssl = true
-        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        Retry.on(StandardError) do
+          io.rewind # rewind in case this is a retry attempt
 
-        request = Net::HTTP::Put.new(uri.request_uri)
-        request['Content-Type'] = ''
-        request['Content-Length'] = size
+          http = Net::HTTP.new(uri.host, uri.port)
+          http.use_ssl = true
+          http.verify_mode = OpenSSL::SSL::VERIFY_NONE
 
-        # accelerated connection is a direct connection, it requires acl header
-        if uri.host.include? 's3-accelerate.amazonaws.com'
-          request['x-amz-acl'] = 'bucket-owner-full-control'
+          request = Net::HTTP::Put.new(uri.request_uri)
+          request['Content-Type'] = ''
+          request['Content-Length'] = size
+
+          # accelerated connection is a direct connection, it requires acl header
+          if uri.host.include? 's3-accelerate.amazonaws.com'
+            request['x-amz-acl'] = 'bucket-owner-full-control'
+          end
+
+          request.body_stream = io
+
+          response = http.request(request)
+
+          return if response.is_a? Net::HTTPSuccess
+          raise "[#{response.code}] #{response.msg} while uploading to S3: #{response.body}"
         end
-
-        request.body_stream = io
-
-        response = http.request(request)
-
-        return if response.is_a? Net::HTTPSuccess
-        raise "[#{response.code}] #{response.msg} while uploading to S3: #{response.body}"
       end
   end
 end

@@ -6,13 +6,22 @@ module PatchKitTools
 
     def initialize(input_io, limit)
       @input_io = input_io
-      @remaining = limit
+      @limit = limit
+
+      # info for reset
+      @remaining = @limit
+      @start_position = @input_io.pos
 
       @on_read = []
     end
 
     def on_read(&callback)
       @on_read << callback
+    end
+
+    def rewind
+      @remaining = @limit
+      @input_io.pos = @start_position
     end
 
     def read(size = 0, outbuf = nil)
