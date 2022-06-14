@@ -18,7 +18,7 @@ class ProgressBar
 
     return unless @semaphore.try_lock
 
-    console_width = IO.console&.winsize[1] || 0
+    console_width = IO.console ? IO.console.winsize[1] : 0
 
     return if console_width < 6
 
