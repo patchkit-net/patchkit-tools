@@ -1,7 +1,7 @@
 # patchkit-tools
-PatchKit desktop tools.
+PatchKit command line tools.
 
-Read about it [here](http://docs.patchkit.net/tools).
+Read about it [here](https://docs.patchkit.net/tools_about.html).
 
 ## Packaging
 
