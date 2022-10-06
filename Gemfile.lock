@@ -1,8 +1,8 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    addressable (2.6.0)
-      public_suffix (>= 2.0.2, < 4.0)
+    addressable (2.8.1)
+      public_suffix (>= 2.0.2, < 6.0)
     byebug (8.2.5)
     crack (0.4.3)
       safe_yaml (~> 1.0.0)
@@ -13,7 +13,7 @@ GEM
       metaclass (~> 0.0.1)
     net-http-uploadprogress (2.0.0)
     power_assert (1.1.1)
-    public_suffix (3.1.1)
+    public_suffix (5.0.0)
     rubyzip (2.3.2)
     safe_yaml (1.0.5)
     test-unit (3.2.7)
