@@ -75,7 +75,7 @@ module Librsync
     elsif linux_32bit?
       "x86/librsync.so"
     elsif linux_64bit?
-      "x86_64/librsync.so"
+      "x86_64/librsync.so.2.3.2"
     else
       raise "Unsupported librsync platform - Unknown"
     end

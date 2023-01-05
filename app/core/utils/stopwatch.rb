@@ -1,13 +1,13 @@
 class Stopwatch
   class << self
-    def measure(label: nil)
+    def measure(label: nil, output: STDOUT)
       start = Time.now
 
       yield
 
       elapsed = Time.now - start
       if label
-        puts "#{label} took #{"%.2f" % elapsed} seconds"
+        output.puts "#{label} took #{"%.2f" % elapsed} seconds"
       end
 
       elapsed

@@ -18,6 +18,7 @@ require_relative 'publish_version.rb'
 require_relative 'update_version.rb'
 require_relative 'upload_version.rb'
 require_relative 'core/model/app'
+require_relative 'core/utils/waiter'
 
 include PatchKitTools::Model
 
@@ -72,6 +73,8 @@ module PatchKitTools
         opts.separator "Optional"
 
         opts.on("-p", "--publish", "publish after finished") { @publish = true }
+
+        opts.on("-w", "--wait", "wait until published") { @wait = true }
 
         opts.on("-c", "--changelog <changelog>",
           "version changelog") do |changelog|
@@ -142,6 +145,15 @@ module PatchKitTools
 
       PatchKitAPI.display_job_progress(@processing_job_guid)
       validate_processed!
+
+      if @wait
+        puts
+        puts "Publishing..."
+        Waiter.wait_for(timeout: 60 * 60 * 24) do
+          self.draft_version.reload.published?
+        end
+        puts "Done!"
+      end
     end
 
     def validate_source_version!

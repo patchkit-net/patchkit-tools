@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [3.2.0]
+### Added
+- make-version `-w` flag to wait for the version to be published before exiting
+
+### Changed
+- Update librsync on Windows and Linux to version 2.3.2
+
 ## [3.1.5]
 ### Changed
 - S3 Uploader now tries to retry the upload on failure

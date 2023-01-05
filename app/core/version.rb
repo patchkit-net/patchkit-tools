@@ -1,3 +1,3 @@
 module PatchKitTools
-  VERSION = '3.1.7'.freeze
+  VERSION = '3.2.0'.freeze
 end

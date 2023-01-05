@@ -38,6 +38,7 @@ module PatchKitTools
 
       def reload
         @data = PatchKitAPI.get(construct_path(@path))
+        self
       end
 
       def method_missing(m, *args, &block)
