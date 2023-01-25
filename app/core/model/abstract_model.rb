@@ -5,6 +5,7 @@ module PatchKitTools
   module Model
     class AbstractModel
       RETRY_ERRORS = [Errno::ECONNRESET, Errno::ECONNABORTED, Errno::EPROTO]
+      GET_RETRY_ERRORS = RETRY_ERRORS + [Net::HTTPBadResponse, Net::HTTPBadGateway, Net::HTTPGatewayTimeOut, Net::HTTPServiceUnavailable, Net::HTTPInternalServerError]
 
       def initialize(path)
         @path = path
@@ -20,7 +21,7 @@ module PatchKitTools
       end
 
       def do_get(path)
-        Retry.on(*RETRY_ERRORS) { PatchKitAPI.get(construct_path(path)) }
+        Retry.on(*GET_RETRY_ERRORS) { PatchKitAPI.get(construct_path(path)) }
       end
 
       def do_post(path, params)
