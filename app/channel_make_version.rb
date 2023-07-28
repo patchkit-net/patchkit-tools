@@ -46,6 +46,7 @@ module PatchKitTools
 
         opts.on("--group-version <version>", Integer,
                 "group version id to link from") { |v| @group_version = v }
+        opts.on("--latest-group-version", "link from latest group version") { @group_version = :latest }
 
         opts.on("-x", "--overwrite-draft", "overwrites existing draft") { @overwrite = true }
 
@@ -62,10 +63,12 @@ module PatchKitTools
       versions = group.published_versions
 
       source_version =
-        if @group_version
+        if @group_version == :latest
+          versions.max_by(&:id)
+        elsif @group_version
           versions.find { |v| v.id.to_s == @group_version.to_s }
         else
-          versions.max_by(&:id)
+          raise_error "Missing group version to import. Please specify one with --group-version or --latest-group-version."
         end
 
       raise_error "cannot find group version to import" if source_version.nil?

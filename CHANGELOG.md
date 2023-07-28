@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [3.3.0]
+### Added
+- `--latest-group-version` flag to `channel-make-version` to explictly create a version based on the latest version in the group.
+
+### Changed
+- channel-make-version will now raise an error if neither `--group-version` nor `--latest-group-version` is specified.
+
 ## [3.2.1]
 ### Fixed
 - Retry on some 50X errors for get requests
