@@ -310,8 +310,8 @@ module PatchKitTools
     end
 
     def interactive_ask
-      ask_if_option_missing!("secret")
       ask_if_option_missing!("api_key")
+      ask_if_option_missing!("secret")
       ask_if_option_missing!("label")
       ask_if_option_missing!("files")
     end
