@@ -9,6 +9,11 @@ module PatchKitTools
         super "1/apps/#{secret}"
       end
 
+      def self.all
+        apps = do_get("1/apps")
+        apps.map { |a| App.new(a) }
+      end
+
       def self.find_by_secret!(secret)
         App.new(PatchKitAPI.get(AbstractModel.construct_path("1/apps/#{secret}")))
       end
