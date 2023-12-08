@@ -17,11 +17,18 @@ module PatchKitAPI
 
     def resource_uri(path)
       api_url = defined?(@api_url) ? @api_url : PatchKitConfig.api_url
-      if path.start_with? '/'
-        URI.parse("#{api_url}#{path}")
-      else
-        URI.parse("#{api_url}/#{path}")
+      uri_str =
+        if path.start_with? '/'
+          "#{api_url}#{path}"
+        else
+          "#{api_url}/#{path}"
+        end
+
+      if @api_key
+        uri_str += "?api_key=#{@api_key}"
       end
+
+      URI.parse(uri_str)
     end
 
     def get(path, **params)
@@ -83,8 +90,7 @@ module PatchKitAPI
           if response.kind_of?(Net::HTTPSuccess)
             yield response if block_given?
           else
-            raise PatchKitTools::APIError,
-                  "[#{response.code}] #{response.msg} while requesting #{@url}: #{response.body}"
+            raise PatchKitTools::APIError.new(@url, response.code, response.msg, response.body)
           end
         end
       end

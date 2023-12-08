@@ -317,6 +317,8 @@ module PatchKitTools
     end
 
     def validate_input!
+      validate_api_key! if @api_key
+
       if mode_files?
         check_option_version_files_directory("files")
 

@@ -176,6 +176,20 @@ module PatchKitTools
     end
 
     protected
+      def validate_api_key!
+        raise_error("Missing API key") if @api_key.nil?
+        begin
+          PatchKitAPI.get("1/account")
+        rescue PatchKitTools::APIError => e
+          if e.code.to_i == 401 || e.code.to_i == 404
+            raise_error("Invalid API key. Please check if the key you provided matches your api key on https://panel.patchkit.net/account\n"\
+                      "If you're sure that the API key is correct, please check the connectivity by visiting "\
+                      "https://api.patchkit.net/1/system/ping (should respond with \"pong\").")
+          end
+
+          raise_error("API error: #{e.message}")
+        end
+      end
 
       def raise_error(message)
         raise CommandLineError, message
