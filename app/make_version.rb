@@ -383,6 +383,8 @@ module PatchKitTools
         puts "There's no previous version. All of the files content will be uploaded"
         upload_version_content
       else
+        @mode = 'content' if app.platform == 'android' # android apps can't be diffed
+
         case @mode.to_s.strip
         when 'content'
           upload_version_content
