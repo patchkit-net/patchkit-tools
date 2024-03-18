@@ -57,7 +57,7 @@ module PatchKitTools
         opts.separator ""
         opts.separator "Provide either -f or --import* parameters"
 
-        opts.on("-f", "--files <files>", "path to version files directory") do |files|
+        opts.on("-f", "--files <files>", "path to version files directory or to an apk file") do |files|
           @files = files
         end
 
@@ -118,9 +118,16 @@ module PatchKitTools
       validate_source_version! unless mode_files?
 
       if !draft_version.nil?
-        if !@overwrite_draft && !ask_yes_or_no("Draft version already exists. Its "\
-          "contents will be overwritten. Proceed?", "y")
-          exit
+        if draft_version.processing_finished_at
+          if !@overwrite_draft && !ask_yes_or_no("A draft version already exists and contains processed content. "\
+                      "Are you sure you want to overwrite it?", "n")
+                      exit
+          end
+        else
+          if !@overwrite_draft && !ask_yes_or_no("A draft version already exists, but no content was uploaded. "\
+                      "Are you sure you want to upload the content and overwrite its metadata?", "y")
+                      exit
+          end
         end
       else
         create_draft_version!
@@ -146,13 +153,21 @@ module PatchKitTools
       PatchKitAPI.display_job_progress(@processing_job_guid)
       validate_processed!
 
-      if @wait
-        puts
-        puts "Publishing..."
-        Waiter.wait_for(timeout: 60 * 60 * 24) do
-          self.draft_version.reload.published?
+      puts
+
+      if @publish
+        if @wait
+          puts
+          puts "Publishing..."
+          Waiter.wait_for(timeout: 60 * 60 * 24) do
+            self.draft_version.reload.published?
+          end
+          puts "Done! Your version is now published."
+        else
+          puts "Done! This version is now being published. You can check the progress by visiting https://panel.patchkit.net/apps/#{app.id}/versions/#{draft_version_id}"
         end
-        puts "Done!"
+      else
+        puts "Done! You can now publish this version by visiting https://panel.patchkit.net/apps/#{app.id}/versions/#{draft_version_id}"
       end
     end
 
@@ -200,13 +215,17 @@ module PatchKitTools
 
     def upload_version_content
       mktmpdir do |temp_dir|
-        content_package = "#{temp_dir}/#{@secret}_content_#{draft_version_id}.zi_"
+        content_package = @files
 
-        content_version_tool = PatchKitTools::ContentVersionTool.new
-        content_version_tool.files = @files
-        content_version_tool.content = content_package
+        if app.platform != 'android'
+          content_package = "#{temp_dir}/#{@secret}_content_#{draft_version_id}.zi_"
 
-        content_version_tool.execute
+          content_version_tool = PatchKitTools::ContentVersionTool.new
+          content_version_tool.files = @files
+          content_version_tool.content = content_package
+
+          content_version_tool.execute
+        end
 
         upload_version_content_tool = PatchKitTools::UploadVersionTool.new
         upload_version_content_tool.secret = @secret
@@ -317,12 +336,22 @@ module PatchKitTools
     end
 
     def validate_input!
-      if mode_files?
-        check_option_version_files_directory("files")
+      validate_api_key! if @api_key
 
-        # fix the path slashes
-        @files.tr!('\\', '/')
-        raise_error "Given directory #{@files} is empty" if Dir["#{@files}/*"].empty?
+      if mode_files?
+        if app.platform == 'android'
+          if !@files.end_with?('.apk')
+            raise_error "Given file #{@files} is not an apk file"
+          elsif !File.exist?(@files)
+            raise_error "Given file #{@files} doesn't exist"
+          end
+        else
+          check_option_version_files_directory("files")
+
+          # fix the path slashes
+          @files.tr!('\\', '/')
+          raise_error "Given directory #{@files} is empty" if Dir["#{@files}/*"].empty?
+        end
       elsif mode_import?
         if @import_copy_label && !@label.nil?
           raise_error "--label not allowed if --import-copy-label is set"
@@ -354,6 +383,8 @@ module PatchKitTools
         puts "There's no previous version. All of the files content will be uploaded"
         upload_version_content
       else
+        @mode = 'content' if app.platform == 'android' # android apps can't be diffed
+
         case @mode.to_s.strip
         when 'content'
           upload_version_content

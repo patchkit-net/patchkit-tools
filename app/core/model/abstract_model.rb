@@ -13,11 +13,7 @@ module PatchKitTools
       end
 
       def self.construct_path(path)
-        if PatchKitAPI.api_key.nil?
-          path
-        else
-          path + "?api_key=#{PatchKitAPI.api_key}"
-        end
+        path
       end
 
       def do_get(path)

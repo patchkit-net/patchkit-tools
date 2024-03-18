@@ -56,6 +56,7 @@ module PatchKitTools
 
     def execute
       check_if_option_exists(:secret, :api_key, :label)
+      validate_api_key! if @api_key
 
       raise_error "not a channel" unless app.is_channel?
 

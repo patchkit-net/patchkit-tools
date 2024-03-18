@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [3.4.0]
+### Added
+- Android apps upload support by make-version
+
+### Changed
+- Use HTTPS protocol by default
+- Improved messages on success and failure
+
 ## [3.3.0]
 ### Added
 - `--latest-group-version` flag to `channel-make-version` to explictly create a version based on the latest version in the group.
