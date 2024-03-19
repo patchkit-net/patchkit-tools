@@ -15,6 +15,10 @@
 # Might be a good idea to set it to false on CI/CD environments.
 # show_progress_bar_updates: true
 
+# A number in seconds how long the tools should wait for the lock to be acquired.
+# This also includes the time sitting in the processing queue if an application is already being processed.
+# global_lock_timeout: 21600
+
 # Uploading
 
 # Upload chunk size in bytes

@@ -11,4 +11,5 @@ group :test do
   gem 'test-unit'
   gem 'webmock'
   gem 'mocha'
+  gem 'rspec'
 end

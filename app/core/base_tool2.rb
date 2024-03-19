@@ -1,12 +1,14 @@
 require 'fileutils'
 
 require_relative 'printer'
+require_relative 'lockable'
 
 # Base class for every tool
 
 module PatchKitTools
   class BaseTool2
     include Printer
+    include Lockable
 
     attr_reader :host
     attr_reader :https

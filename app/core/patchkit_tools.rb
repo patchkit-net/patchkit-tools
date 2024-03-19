@@ -20,6 +20,7 @@ module PatchKitTools
       ::PatchKitAPI.api_url = "#{protocol}://#{tool.host}" if !tool.host.nil? && !tool.host.empty?
 
       tool.execute
+      tool.release_global_lock! if tool.respond_to? :release_global_lock!
       exit true
     rescue APIError, CommandLineError, OptionParser::MissingArgument => error
       puts "ERROR: #{error}"

@@ -60,6 +60,8 @@ module PatchKitTools
 
       raise_error "not a channel" unless app.is_channel?
 
+      acquire_app_processing_global_lock!(app)
+
       group = app.group
       versions = group.published_versions
 

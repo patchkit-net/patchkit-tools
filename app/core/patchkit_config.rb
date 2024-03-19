@@ -32,7 +32,8 @@ module PatchKitConfig
        :upload_retry_count,
        :upload_ask_to_try_again,
        :rdiff_thread_count,
-       :show_progress_bar_updates
+       :show_progress_bar_updates,
+       :global_lock_timeout
       ].include? key.to_sym
     end
 
@@ -72,6 +73,10 @@ module PatchKitConfig
 
     def default_show_progress_bar_updates
       true
+    end
+
+    def default_global_lock_timeout
+      3600 * 6 # six hours
     end
   end
 

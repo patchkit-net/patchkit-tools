@@ -1,10 +1,12 @@
 require_relative 'printer'
+require_relative 'lockable'
 
 # Base class for every tool
 
 module PatchKitTools
   class BaseTool
     include Printer
+    include Lockable
 
     attr_reader :host
     attr_reader :https

@@ -110,6 +110,8 @@ module PatchKitTools
       interactive_ask if interactive?
       validate_input!
 
+      acquire_app_processing_global_lock!(app)
+
       if app.is_channel
         raise_error "Cannot upload directly to a channel. You can upload the content to a group or use "\
                     "channel-make-version to create a new channel version."

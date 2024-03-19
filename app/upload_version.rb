@@ -118,10 +118,11 @@ module PatchKitTools
       check_if_option_file_exists_and_readable("file")
       check_if_option_file_exists_and_readable("diff_summary") if @mode == "diff"
 
+      acquire_app_processing_global_lock!(app)
+
       # Check if the version is draft
       puts "Checking version..."
-      app = App.find_by_secret!(@secret)
-      
+
       version = Version.find_by_id!(app, @version)
       raise "Version must be a draft" unless version.draft?
 
@@ -195,6 +196,10 @@ module PatchKitTools
         PatchKitAPI.display_job_progress(@processing_job_guid)
       end
     end
+  end
+
+  def app
+    @app ||= App.find_by_secret!(@secret)
   end
 end
 

@@ -4,6 +4,8 @@ require_relative '../utils/retry'
 module PatchKitTools
   module Model
     class AbstractModel
+      attr_reader :path
+
       RETRY_ERRORS = [Errno::ECONNRESET, Errno::ECONNABORTED, Errno::EPROTO]
       GET_RETRY_ERRORS = RETRY_ERRORS + [Net::HTTPBadResponse, Net::HTTPBadGateway, Net::HTTPGatewayTimeOut, Net::HTTPServiceUnavailable, Net::HTTPInternalServerError]
 
@@ -50,7 +52,11 @@ module PatchKitTools
             end
           end
         else
-          super
+          if PatchKitConfig.debug
+            raise NoMethodError, "No method #{m} in #{self.inspect}"
+          else
+            super
+          end
         end
       end
 
