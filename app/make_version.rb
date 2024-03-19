@@ -58,7 +58,7 @@ module PatchKitTools
         opts.separator "Provide either -f or --import* parameters"
 
         opts.on("-f", "--files <files>", "path to version files directory or to an apk file") do |files|
-          @files = files
+          @files = files&.tr('\\', '/')
         end
 
         opts.on("--import-app-secret <secret>", 'secret of source application') do |secret|
@@ -364,8 +364,6 @@ module PatchKitTools
         else
           check_option_version_files_directory("files")
 
-          # fix the path slashes
-          @files.tr!('\\', '/')
           raise_error "Given directory #{@files} is empty" if Dir["#{@files}/*"].empty?
         end
       elsif mode_import?
