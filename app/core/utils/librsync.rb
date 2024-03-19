@@ -27,6 +27,14 @@ module Librsync
     end
   end
 
+  def self.x86?
+    RbConfig::CONFIG['host_cpu'].downcase.include?('x86')
+  end
+
+  def self.aarch64?
+    RbConfig::CONFIG['host_cpu'].downcase.include?('aarch64')
+  end
+
   def self.windows?
     ((/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM) != nil)
   end
@@ -56,11 +64,15 @@ module Librsync
   end
 
   def self.linux_32bit?
-    linux? && bits == 32
+    linux? && bits == 32 && x86?
   end
 
   def self.linux_64bit?
-    linux? && bits == 64
+    linux? && bits == 64 && x86?
+  end
+
+  def self.linux_aarch64?
+    linux? && bits == 64 && aarch64?
   end
 
   def self.lib_name
@@ -76,6 +88,8 @@ module Librsync
       "x86/librsync.so"
     elsif linux_64bit?
       "x86_64/librsync.so.2.3.2"
+    elsif linux_aarch64?
+      "aarch64/librsync.so.2.0.1"
     else
       raise "Unsupported librsync platform - Unknown"
     end
