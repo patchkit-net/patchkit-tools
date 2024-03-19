@@ -340,8 +340,24 @@ module PatchKitTools
 
       if mode_files?
         if app.platform == 'android'
+
+          # make things easy. Allow the user to point directly to the apk file, but if it's a directory, check for
+          # a single *.apk inside
+
           if !@files.end_with?('.apk')
-            raise_error "Given file #{@files} is not an apk file"
+
+            if File.directory?(@files)
+              apks = Dir["#{@files}/*.apk"]
+              if apks.size == 1
+                @files = apks[0]
+              else
+                raise_error "Provided directory #{@files} with multiple apk files inside. Expected -f to point to a "\
+                              "single apk file or a directory with a single apk file inside. "\
+                              "Files found: #{apks.join(', ')}"
+              end
+            else
+              raise_error "Given file #{@files} is not an apk file."
+            end
           elsif !File.exist?(@files)
             raise_error "Given file #{@files} doesn't exist"
           end
