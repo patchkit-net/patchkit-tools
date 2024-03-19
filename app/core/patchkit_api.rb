@@ -147,8 +147,8 @@ module PatchKitAPI
         progress_bar.print(last_progress, last_status_message)
 
         break if job_status[:finished]
-      rescue
-        progress_bar.print(last_progress, "WARNING: Cannot read job status. Will try again...", force: true)
+      rescue => e
+        progress_bar.print(last_progress, "WARNING: Cannot read job status - #{e.message}. Will try again...", force: true)
       end
 
       request_time = Time.now - start_time
@@ -184,8 +184,8 @@ module PatchKitAPI
         break unless job_status[:pending_publish]
 
         progress_bar.print(last_progress, "Publishing...")
-      rescue
-        progress_bar.print(last_progress, "WARNING: Cannot read publishing status. Will try again...")
+      rescue => e
+        progress_bar.print(last_progress, "WARNING: Cannot read publishing status (#{e.message}). Will try again...")
       end
 
       request_time = Time.now - start_time

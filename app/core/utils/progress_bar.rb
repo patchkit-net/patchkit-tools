@@ -1,5 +1,6 @@
 require 'io/console'
 require 'thread'
+require_relative '../patchkit_config'
 
 class ProgressBar
   attr_writer :limit_per_second
@@ -49,6 +50,7 @@ class ProgressBar
   private
 
     def can_print?
+      return false unless PatchKitConfig.show_progress_bar_updates
       (Time.now.to_f - @last_print_time) >= 1.0 / @limit_per_second
     end
 

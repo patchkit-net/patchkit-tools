@@ -11,6 +11,10 @@
 # Defines the host to which patchkit tools should connect to.
 # api_url: http://api.patchkit.net
 
+# Decides if the progress bar should render its updates during long operations.
+# Might be a good idea to set it to false on CI/CD environments.
+# show_progress_bar_updates: true
+
 # Uploading
 
 # Upload chunk size in bytes

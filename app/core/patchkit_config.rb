@@ -26,7 +26,14 @@ module PatchKitConfig
     end
 
     def include?(key)
-      [:debug, :api_url, :upload_chunk_size, :upload_retry_count, :upload_ask_to_try_again, :rdiff_thread_count].include? key.to_sym
+      [:debug,
+       :api_url,
+       :upload_chunk_size,
+       :upload_retry_count,
+       :upload_ask_to_try_again,
+       :rdiff_thread_count,
+       :show_progress_bar_updates
+      ].include? key.to_sym
     end
 
     def value(key)
@@ -61,6 +68,10 @@ module PatchKitConfig
 
     def default_rdiff_thread_count
       4
+    end
+
+    def default_show_progress_bar_updates
+      true
     end
   end
 
