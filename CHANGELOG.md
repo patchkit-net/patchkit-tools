@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - Global locks support for content uploads, to prevent parallel uploads
 
+### Changed
+- New progress bar rendering
+
 ## [3.4.0]
 ### Added
 - Android apps upload support by make-version

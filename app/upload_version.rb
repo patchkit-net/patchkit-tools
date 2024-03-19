@@ -153,7 +153,7 @@ module PatchKitTools
 
       loop do
         begin
-          3.times { puts }
+          puts
           uploader.upload_file(@file)
           break
         rescue => e
@@ -176,6 +176,7 @@ module PatchKitTools
       upload_id = uploader.upload_id
 
       progress_bar.print(file_size, "Upload done", force: true)
+      puts
 
       result = case @mode
                when 'content'
