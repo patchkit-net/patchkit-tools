@@ -11,7 +11,7 @@ module PatchKitTools
       # override api_url if --host has been provided
       
       protocol =
-        if tool.https == "true"
+        if tool.https == "true" || tool.https == true
           'https'
         else
           'http'
