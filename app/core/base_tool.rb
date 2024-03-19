@@ -18,6 +18,8 @@ module PatchKitTools
       @opts_defined = []
       @opts_used = []
       @opts_required = []
+
+      @https = true
     end
 
     # Parse options from command line

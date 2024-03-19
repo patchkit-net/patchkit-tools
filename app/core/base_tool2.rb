@@ -20,6 +20,8 @@ module PatchKitTools
       @opts_used = []
       @opts_required = []
       @argv = argv
+
+      @https = true
     end
 
     # Parse options from command line
