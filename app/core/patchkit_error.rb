@@ -20,4 +20,10 @@ module PatchKitTools
   end
   class APIPublishError < StandardError
   end
+
+  class CannotReadStdinError < StandardError
+    def initialize(message = 'Cannot read from stdin')
+      super(message)
+    end
+  end
 end

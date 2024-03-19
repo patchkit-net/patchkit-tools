@@ -120,16 +120,21 @@ module PatchKitTools
       validate_source_version! unless mode_files?
 
       if !draft_version.nil?
-        if draft_version.processing_finished_at
-          if !@overwrite_draft && !ask_yes_or_no("A draft version already exists and contains processed content. "\
-                      "Are you sure you want to overwrite it?", "n")
-                      exit
+        begin
+          if draft_version.processing_finished_at
+            if !@overwrite_draft && !ask_yes_or_no("A draft version already exists and contains processed content. "\
+                        "Are you sure you want to overwrite it?", "n")
+                        exit
+            end
+          else
+            if !@overwrite_draft && !ask_yes_or_no("A draft version already exists, but no content was uploaded. "\
+                        "Are you sure you want to upload the content and overwrite its metadata?", "y")
+                        exit
+            end
           end
-        else
-          if !@overwrite_draft && !ask_yes_or_no("A draft version already exists, but no content was uploaded. "\
-                      "Are you sure you want to upload the content and overwrite its metadata?", "y")
-                      exit
-          end
+        rescue CannotReadStdinError => e
+          raise CannotReadStdinError, "Running in non-interactive mode and not allowed to overwrite draft version. "\
+                                      "Please use --overwrite-draft option or run in interactive mode."
         end
       else
         create_draft_version!

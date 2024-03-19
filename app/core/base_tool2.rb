@@ -87,7 +87,14 @@ module PatchKitTools
 
     def ask(question)
       print "#{question}: "
-      STDIN.gets.strip
+      str = STDIN.gets
+
+      if str.nil?
+        raise CannotReadStdinError, "Cannot read from stdin. This could mean that you're trying to run the tool in a "\
+          "non-interactive mode. Please run the tool in an interactive mode or provide all the required options as command line arguments."
+      end
+
+      str.strip
     end
 
     def ask_yes_or_no(question, default)
