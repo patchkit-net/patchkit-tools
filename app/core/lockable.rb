@@ -65,6 +65,15 @@ module PatchKitTools
           sleep 60
         end
 
+        while app.reload.publishing_version?
+          if Time.now - start_time > timeout
+            return false
+          end
+
+          puts "Application version is currently being published. Checking again in 60 seconds..."
+          sleep 60
+        end
+
         true
       end
     end
