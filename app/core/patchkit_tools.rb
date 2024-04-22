@@ -19,6 +19,14 @@ module PatchKitTools
 
       ::PatchKitAPI.api_url = "#{protocol}://#{tool.host}" if !tool.host.nil? && !tool.host.empty?
 
+      trap("SIGINT") do
+        if tool.respond_to? :release_global_lock!
+          puts "Caught SIGINT, releasing global lock..."
+          tool.release_global_lock!
+          exit 1
+        end
+      end
+
       tool.execute
       tool.release_global_lock! if tool.respond_to? :release_global_lock!
       exit true
