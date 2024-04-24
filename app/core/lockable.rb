@@ -34,7 +34,7 @@ module PatchKitTools
         end
       end
 
-      @global_lock = GlobalLock.wait_for(resource: resource_name)
+      @global_lock = PatchKitTools::Model::GlobalLock.wait_for(resource: resource_name)
 
       if block_given?
         unless yield

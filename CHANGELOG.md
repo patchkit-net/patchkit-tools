@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - Global lock release on Ctrl+C during the operation
 
+### Fixed
+- GlobalLock reference error on channel-make-version
+
 ## [3.5.0]
 ### Added
 - Global locks support for content uploads, to prevent parallel uploads
