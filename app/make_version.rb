@@ -103,6 +103,11 @@ module PatchKitTools
         opts.on("--import-copy-changelog", Integer, 'copy changelog from source version') do
           @import_copy_changelog = true
         end
+
+        # option to exit (skip) on processing. It will still be processed on the server, just not waiting for it here
+        opts.on("--skip-processing", "skip processing stage") do
+          @skip_processing = true
+        end
       end
     end
 
@@ -151,6 +156,13 @@ module PatchKitTools
       if @publish
         publish_version!
         puts "This version will be published as soon as it gets processed."
+      end
+
+      if @skip_processing
+        # print explanation message why it's being skipped (because of --skip-processing flag)
+        # Processing is still done on the server, just not waited for here
+        puts "Processing stage skipped. Version will be processed in the background."
+        return
       end
 
       puts "Everything here is done! You're now safe to quit (CTRL+C) or close your console window."
