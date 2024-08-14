@@ -147,15 +147,16 @@ module PatchKitTools
 
       update_draft_version_details!
 
+      if @publish
+        puts "This version will be published as soon as it gets processed."
+        draft_version.publish_when_processed = true
+        draft_version.save!
+      end
+
       if mode_files?
         upload_files!
       else
         import_version!(app_secret: @import_app_secret, vid: @import_version_vid)
-      end
-
-      if @publish
-        publish_version!
-        puts "This version will be published as soon as it gets processed."
       end
 
       if @skip_processing
@@ -273,7 +274,7 @@ module PatchKitTools
 
         download_version_signatures_tool.execute
 
-        diff_package = "#{temp_dir}/#{@secret}_diff_#{previous_version_id}.zi_"
+        diff_package = "#{temp_dir}/#{@secret}_diff_#{previous_version_id}.diff"
         diff_summary = "#{temp_dir}/#{@secret}_diff_summary_#{previous_version_id}.txt"
 
         diff_version_tool = PatchKitTools::DiffVersionTool.new
@@ -281,8 +282,21 @@ module PatchKitTools
         diff_version_tool.files = @files
         diff_version_tool.diff = diff_package
         diff_version_tool.diff_summary = diff_summary
+        if @mode == 'diff_fast'
+          diff_version_tool.algorithm = 'pack1'
+          diff_version_tool.pack1_key = self.draft_version.fetch_pack1_key
+        end
 
         diff_version_tool.execute
+
+        if @mode == 'diff_fast'
+          files = [diff_package, "#{diff_package}.meta"]
+          files.each do |file|
+            raise "File #{file} doesn't exist" unless File.exist?(file)
+          end
+
+          diff_package = files.join(',')
+        end
 
         upload_version_content_tool = PatchKitTools::UploadVersionTool.new
         upload_version_content_tool.secret = @secret
@@ -292,6 +306,7 @@ module PatchKitTools
         upload_version_content_tool.file = diff_package
         upload_version_content_tool.diff_summary = diff_summary
         upload_version_content_tool.wait_for_job = false
+        upload_version_content_tool.sha1 = diff_version_tool.sha1
 
         upload_version_content_tool.execute
         @processing_job_guid = upload_version_content_tool.processing_job_guid
@@ -300,11 +315,6 @@ module PatchKitTools
 
     def app
       @app ||= App.find_by_secret!(@secret)
-    end
-
-    def publish_version!
-      draft_version.publish_when_processed = true
-      draft_version.save!
     end
 
     def draft_version
@@ -421,7 +431,7 @@ module PatchKitTools
         case @mode.to_s.strip
         when 'content'
           upload_version_content
-        when 'diff'
+        when 'diff', 'diff_fast'
           upload_version_diff
         else
           raise_error "Unknown upload mode: #{@mode}"

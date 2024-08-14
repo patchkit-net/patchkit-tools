@@ -8,3 +8,4 @@
 /vendor/
 /jruby-9.2.13.0/
 /tmp
+.bash_history

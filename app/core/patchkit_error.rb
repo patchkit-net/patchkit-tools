@@ -16,7 +16,7 @@ module PatchKitTools
       super("[#{code}] #{msg} while requesting #{url}: #{body}")
     end
   end
-  class APIJobError < APIError
+  class APIJobError < StandardError
   end
   class APIPublishError < StandardError
   end

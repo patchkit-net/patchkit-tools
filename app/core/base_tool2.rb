@@ -160,18 +160,35 @@ module PatchKitTools
       end
     end
 
-    def check_if_option_file_exists_and_readable(name)
+    def check_if_option_file_exists_and_readable(name, array: false)
       check_if_option_exists(name)
 
       value = instance_variable_get("@#{name}")
 
-      unless File.file?(value)
-        raise CommandLineError, "[--#{argument_name(name)}] File doesn't exists - #{value}"
+      if File.file?(value) && File.readable?(value)
+        # all good
+        instance_variable_set("@#{name}", [value]) if array
+        return
       end
 
-      unless File.readable?(value)
-        raise CommandLineError, "[--#{argument_name(name)}] File isn't readable - #{value}"
+      arr = []
+      if array
+        arr = value.split(',')
+      else
+        arr = [value]
       end
+
+      arr.each do |path|
+        unless File.file?(path)
+          raise CommandLineError, "[--#{argument_name(name)}] File doesn't exists - #{path}"
+        end
+
+        unless File.readable?(path)
+          raise CommandLineError, "[--#{argument_name(name)}] File isn't readable - #{path}"
+        end
+      end
+      
+      instance_variable_set("@#{name}", arr) if array
     end
 
     def check_option_version_files_directory(name)

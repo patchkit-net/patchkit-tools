@@ -2,6 +2,7 @@ source 'https://rubygems.org'
 gem 'net-http-uploadprogress'
 gem 'rubyzip'
 gem 'fiddle'
+gem 'concurrent-ruby'
 
 group :development do
   gem 'byebug', '~>8'

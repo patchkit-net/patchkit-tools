@@ -104,14 +104,14 @@ module PatchKitTools
           File.open(@output, 'rb') do |f|
             f.pos = [0, File.size(@output) - 1024].max
             data = f.read(1024)
-            unless data.include? "\x50\x4b\x05\x06"
+            if !data.include? "\x50\x4b\x05\x06"
               puts "Error while downloading signatures. Will try again in 5 seconds..."
               sleep 5
-              break # makes sure to exit download_signatures block
+              finished = false
+            else
+              finished = true
             end
           end
-
-          finished = true
         end
 
       end # while

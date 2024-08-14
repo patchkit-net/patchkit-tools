@@ -9,12 +9,16 @@ class: PatchKitTools::DiffVersionTool
 $META_END$
 =end
 
+require 'base64'
+
 require_relative 'core/patchkit_api.rb'
 require_relative 'core/patchkit_tools.rb'
 require_relative 'core/patchkit_version_diff.rb'
 
 module PatchKitTools
   class DiffVersionTool < PatchKitTools::BaseTool
+    attr_reader :sha1
+
     def initialize
       super("diff-version", "Creates version diff from previous version signatures zip and new version files.",
             "-s <signatures> -f <files> -d <diff> -m <diff_summary>")
@@ -40,7 +44,17 @@ module PatchKitTools
           self.diff = diff
         end
 
-        opts.on("-m", "--out-diff-summary-file <diff_summary>",
+        opts.on("--algorithm <algorithm>",
+                "algorithm used to create diff (default: zip, options: zip, pack1)") do |algorithm|
+          self.algorithm = algorithm.to_sym
+        end
+
+        opts.on("--pack1-key <pack1_key>",
+                "base64 encoded key used to create pack1 diff") do |pack1_key|
+          self.pack1_key = pack1_key
+        end
+
+        opts.on("-m", "--diff-summary <diff_summary>",
           "output diff summary file") do |diff_summary|
           self.diff_summary = diff_summary
         end
@@ -52,6 +66,7 @@ module PatchKitTools
       check_option_version_files_directory("files")
       check_if_option_exists("diff")
       check_if_option_exists("diff_summary")
+      self.algorithm = :zip if self.algorithm.nil?
 
       Dir.mktmpdir do |temp_dir|
         temporary_signatures_directory = "#{temp_dir}/signatures"
@@ -63,10 +78,22 @@ module PatchKitTools
 
         puts "Creating diff..."
 
-        diff_summary = PatchKitVersionDiff.create_diff(
-          self.files, temporary_signatures_directory, temporary_diff_directory, self.diff
-        )
+        output_file = self.diff
+        if self.algorithm.to_sym == :pack1
+          output_file = [self.diff, "#{self.diff}.meta"]
+        end
 
+        pack1_key = Base64.decode64(self.pack1_key) unless self.pack1_key.nil?
+
+        create_diff_result =
+          PatchKitVersionDiff.create_diff(self.files, temporary_signatures_directory, temporary_diff_directory,
+                                          output_file, algorithm: self.algorithm, pack1_key: pack1_key)
+        diff_summary = create_diff_result.diff_summary
+        @sha1 = create_diff_result.sha1
+
+        puts "SHA1 of the diff file: #{@sha1}"
+
+        puts
         puts "Saving diff summary..."
 
         diff_summary_file = File.open(self.diff_summary, 'wb')

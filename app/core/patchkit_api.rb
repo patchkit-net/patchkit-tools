@@ -52,7 +52,17 @@ module PatchKitAPI
     end
 
     def process_request(request, params)
-      request.form = params.delete(:params).collect{ |k, v| [k.to_s, v.to_s]}.to_h if params.include? :params
+      if params.include?(:params)
+        formatted_params = params.delete(:params).flat_map do |k, v|
+          if v.is_a?(Array)
+            v.map { |item| ["#{k}[]", item.to_s] }
+          else
+            [[k.to_s, v.to_s]]
+          end
+        end
+
+        request.form = formatted_params
+      end
       request.headers = params.delete(:headers).collect{ |k, v| [k.to_s, v.to_s]}.to_h if params.include? :headers
 
       raise "unknown keys: #{params.keys}" unless params.empty?

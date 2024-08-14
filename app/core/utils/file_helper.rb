@@ -16,6 +16,15 @@ module FileHelper
     end
   end
 
+  def self.get_dir_size(dir)
+    total_size = 0
+    Dir.glob(File.join(dir, '**', '*'), File::FNM_DOTMATCH) do |file|
+      next if file == '.' || file == '..'
+      total_size += File.size(file) if File.file?(file)
+    end
+    total_size
+  end
+
   def self.only_zip_file_in_directory(dir)
     l = list_relative(dir)
     l.count == 1 && l[0].end_with?(".zip")

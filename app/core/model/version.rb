@@ -50,6 +50,11 @@ module PatchKitTools
         do_put("1/apps/#{app.secret}/versions/#{id}/diff_file", params)
       end
 
+      def fetch_pack1_key
+        response = do_get("1/apps/#{app.secret}/versions/#{id}/pack1_key")
+        response[:key]
+      end
+
       def download_signatures(offset: 0, &block)
         path = construct_path("1/apps/#{app.secret}/versions/#{id}/signatures/url")
         resp = PatchKitAPI.get(path)

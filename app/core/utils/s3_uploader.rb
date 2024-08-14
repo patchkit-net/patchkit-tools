@@ -81,11 +81,18 @@ module PatchKitTools
           io.rewind # rewind in case this is a retry attempt
 
           http = Net::HTTP.new(uri.host, uri.port)
-          http.use_ssl = true
+          http.use_ssl = uri.scheme == 'https'
           http.verify_mode = OpenSSL::SSL::VERIFY_NONE
 
           request = Net::HTTP::Put.new(uri.request_uri)
-          request['Content-Type'] = ''
+          if uri.host.include? 'localhost'
+            request['Content-Type'] = 'application/octet-stream'
+          else
+            # it's valid for S3 to have blank content type
+            # I don't remember why, but we needed it
+            request['Content-Type'] = ''
+          end
+             
           request['Content-Length'] = size
 
           # accelerated connection is a direct connection, it requires acl header
