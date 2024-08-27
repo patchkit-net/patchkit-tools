@@ -1,5 +1,6 @@
 require 'optparse'
 require 'ostruct'
+require 'thread'
 require_relative 'utils/file_helper.rb'
 require_relative 'patchkit_error.rb'
 
@@ -24,6 +25,17 @@ module PatchKitTools
           puts "Caught SIGINT, releasing global lock..."
           tool.release_global_lock!
           exit 1
+        end
+      end
+
+      Signal.trap("SIGQUIT") do
+        puts "Received SIGQUIT, printing thread stats:"
+        Thread.list.each do |thread|
+          puts "Thread #{thread.object_id}:"
+          puts "  Status: #{thread.status}"
+          puts "  Alive: #{thread.alive?}"
+          puts "  Priority: #{thread.priority}"
+          puts "  Backtrace: #{thread.backtrace&.join("\n  ")}"
         end
       end
 
