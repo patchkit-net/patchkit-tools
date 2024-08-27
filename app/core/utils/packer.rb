@@ -27,7 +27,7 @@ class Packer
         case @algorithm
         when :zip
           raise "expect one file path" unless file.is_a?(String)
-          Zip::File.open(@io_proxy)
+          Zip::File.open(@file, true)
         when :pack1
           raise "expect array of two files" unless file.is_a?(Array) && file.size == 2
           packer = Pack1Packer.new
@@ -53,7 +53,12 @@ class Packer
   end
 
   def sha1
-    @io_proxy.sha1
+    # ZIP writer jumps back and forth, therefore we can't calculate the SHA1 during the write.
+    # Normally, we could calculate it on close, but let's not do it for now as SHA1 are not needed in every case.
+    # This is bound to be changed, but then we might switch to TAR packages.
+    if @algorithm != :zip
+      @io_proxy.sha1
+    end
   end
 
   def add(entry_name:, source_file_path:)
