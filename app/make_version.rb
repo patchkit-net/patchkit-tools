@@ -117,9 +117,9 @@ module PatchKitTools
 
       acquire_app_processing_global_lock!(app)
 
-      if app.is_channel
-        raise_error "Cannot upload directly to a channel. You can upload the content to a group or use "\
-                    "channel-make-version to create a new channel version."
+      if app.is_channel && @mode != 'diff_fast'
+        raise_error "Cannot upload directly to a channel. You can upload the content to a group, use "\
+                    "channel-make-version to create a new channel version, or use diff_fast mode."
       end
 
       validate_source_version! unless mode_files?
