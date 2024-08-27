@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [3.6.0]
+### Added
+- `diff_fast` mode support for `make-version` command.
+
 ## [3.5.1]
 ### Added
 - Global lock release on Ctrl+C during the operation
