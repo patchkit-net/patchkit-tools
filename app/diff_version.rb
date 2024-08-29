@@ -49,6 +49,11 @@ module PatchKitTools
           self.algorithm = algorithm.to_sym
         end
 
+        opts.on("--delta-algorithm <algorithm>",
+                "algorithm used to create diff (default: librsync, options: librsync, turbopatch)") do |algorithm|
+          self.delta_algorithm = algorithm.to_sym
+        end
+
         opts.on("--pack1-key <pack1_key>",
                 "base64 encoded key used to create pack1 diff") do |pack1_key|
           self.pack1_key = pack1_key
@@ -66,7 +71,9 @@ module PatchKitTools
       check_option_version_files_directory("files")
       check_if_option_exists("diff")
       check_if_option_exists("diff_summary")
+
       self.algorithm = :zip if self.algorithm.nil?
+      self.delta_algorithm = :librsync if self.delta_algorithm.nil?
 
       Dir.mktmpdir do |temp_dir|
         temporary_signatures_directory = "#{temp_dir}/signatures"
@@ -87,7 +94,11 @@ module PatchKitTools
 
         create_diff_result =
           PatchKitVersionDiff.create_diff(self.files, temporary_signatures_directory, temporary_diff_directory,
-                                          output_file, algorithm: self.algorithm, pack1_key: pack1_key)
+                                          output_file,
+                                          packaging_algorithm: self.algorithm,
+                                          delta_algorithm: self.delta_algorithm,
+                                          pack1_key: pack1_key,
+                                          previous_files_hashes: self.previous_files_hashes)
         diff_summary = create_diff_result.diff_summary
         @sha1 = create_diff_result.sha1
 

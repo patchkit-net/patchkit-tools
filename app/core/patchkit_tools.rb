@@ -21,21 +21,20 @@ module PatchKitTools
       ::PatchKitAPI.api_url = "#{protocol}://#{tool.host}" if !tool.host.nil? && !tool.host.empty?
 
       trap("SIGINT") do
+        if PatchKitConfig.debug
+          Thread.list.each do |thread|
+            puts "Thread #{thread.object_id}:"
+            puts "  Status: #{thread.status}"
+            puts "  Alive: #{thread.alive?}"
+            puts "  Priority: #{thread.priority}"
+            puts "  Backtrace: #{thread.backtrace&.join("\n  ")}"
+          end
+        end
+
         if tool.respond_to? :release_global_lock!
           puts "Caught SIGINT, releasing global lock..."
           tool.release_global_lock!
           exit 1
-        end
-      end
-
-      Signal.trap("SIGQUIT") do
-        puts "Received SIGQUIT, printing thread stats:"
-        Thread.list.each do |thread|
-          puts "Thread #{thread.object_id}:"
-          puts "  Status: #{thread.status}"
-          puts "  Alive: #{thread.alive?}"
-          puts "  Priority: #{thread.priority}"
-          puts "  Backtrace: #{thread.backtrace&.join("\n  ")}"
         end
       end
 

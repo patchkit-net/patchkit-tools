@@ -283,7 +283,9 @@ module PatchKitTools
         diff_version_tool.diff = diff_package
         diff_version_tool.diff_summary = diff_summary
         if @mode == 'diff_fast'
+          diff_version_tool.previous_files_hashes = previous_files_hashes(previous_version_id)
           diff_version_tool.algorithm = 'pack1'
+          diff_version_tool.delta_algorithm = app.diff_algorithm&.gsub('rdiff', 'librsync')
           diff_version_tool.pack1_key = self.draft_version.fetch_pack1_key
         end
 
@@ -327,6 +329,13 @@ module PatchKitTools
 
     def draft_version_id
       draft_version.id
+    end
+
+    def previous_files_hashes(version_id)
+      version = Version.find_by_id!(app, version_id)
+      content_summary = version.content_summary
+
+      content_summary[:files].map { |f| [f[:path], f[:hash]] }.to_h
     end
 
     def validate_processed!

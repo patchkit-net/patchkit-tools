@@ -2,6 +2,8 @@ require 'thread'
 require 'concurrent'
 
 require_relative 'utils/librsync.rb'
+require_relative 'utils/turbo_patch.rb'
+require_relative 'utils/xxhash.rb'
 require_relative 'utils/zip_helper.rb'
 require_relative 'utils/file_helper.rb'
 require_relative 'utils/thread_pool.rb'
@@ -13,8 +15,9 @@ module PatchKitVersionDiff
   def self.get_diff_summary(content_files:, signature_files:, unchanged_files:, output_file_size:, uncompressed_size:,
                             compression_method:, encryption_method:)
 
-    # skip directories, TODO: Verify if server does the same
+    # skip directories, the server does the same
     content_files = content_files.select { |f| !f.end_with?("/") }
+    signature_files = signature_files.select { |f| !f.end_with?("/") }
 
     removed_files = signature_files - content_files
     added_files = content_files - signature_files
@@ -38,8 +41,14 @@ module PatchKitVersionDiff
   end
 
   # Creates diff and returns diff summary
-  def self.create_diff(files_dir, signatures_dir, temp_dir, output_file, algorithm: :zip, pack1_key: nil)
-    if algorithm == :pack1
+  def self.create_diff(files_dir, signatures_dir, temp_dir, output_file,
+                       packaging_algorithm: :zip,
+                       delta_algorithm: :librsync,
+                       pack1_key: nil,
+                       previous_files_hashes: # the format is path => hash string (hex)
+  )
+
+    if packaging_algorithm == :pack1
       raise "Pack1 key must be set for pack1 algorithm" if pack1_key.nil?
     end
 
@@ -62,6 +71,7 @@ module PatchKitVersionDiff
         content_files.each do |content_file|
           content_file_abs = File.join(files_dir, content_file)
 
+          # skip all the dirs, this is the default behavior
           next unless File.file? content_file_abs
 
           if signature_files.include? content_file
@@ -75,12 +85,22 @@ module PatchKitVersionDiff
 
                 FileUtils.mkdir_p delta_file_abs_dir unless File.directory?(delta_file_abs_dir)
 
-                Librsync.rs_rdiff_delta(signature_file_abs, content_file_abs, delta_file_abs)
-                unchanged_files << content_file if DeltaFileVerifier.verify(delta_file_abs)
+                build_delta(signature_file: signature_file_abs, content_file: content_file_abs,
+                            target_file_path: delta_file_abs, algorithm: delta_algorithm,
+                            temp_dir: temp_dir)
 
-                queue << { delta_file_path: delta_file_abs, content_file_name: content_file}
+                xxhash_int = ::PatchKitTools::Xxhash.hash(content_file_abs, :xxh32, 42)
+                if previous_files_hashes.present? && previous_files_hashes[content_file].to_i(16) == xxhash_int
+                  unchanged_files << content_file
+                end
+
+                # Librsync.rs_rdiff_delta(signature_file_abs, content_file_abs, delta_file_abs)
+                # unchanged_files << content_file if DeltaFileVerifier.verify(delta_file_abs)
+
+                queue << { delta_file_path: delta_file_abs, content_file_name: content_file }
               rescue => e
                 puts "Error while processing file #{content_file}: #{e}"
+                puts e.backtrace
                 puts
               end
             end
@@ -100,7 +120,7 @@ module PatchKitVersionDiff
           FileUtils.rm_rf output_file if File.exist? output_file
         end
 
-        packer = Packer.open(output_file, algorithm: algorithm, key: pack1_key) do |packer|
+        packer = Packer.open(output_file, algorithm: packaging_algorithm, key: pack1_key) do |packer|
           loop do
             break if queue.empty? && pool.shutdown?
 
@@ -139,7 +159,7 @@ module PatchKitVersionDiff
         unchanged_files: unchanged_files,
         output_file_size: output_file_size,
         uncompressed_size: FileHelper.get_dir_size(files_dir),
-        compression_method: algorithm == :zip ? "zip" : "pack1",
+        compression_method: packaging_algorithm == :zip ? "zip" : "pack1",
         encryption_method: "none"
       )
 
@@ -154,6 +174,37 @@ module PatchKitVersionDiff
     files.map do |f|
       path = File.join(base_dir, f)
       File.directory?(path) ? "#{f}/" : f
+    end
+  end
+
+  def self.build_delta(signature_file:, content_file:, target_file_path:, algorithm:, temp_dir:)
+    temp_signature_path = File.join(temp_dir, "___sig#{SecureRandom.hex(6)}")
+
+    case algorithm&.to_sym
+    when :librsync
+      Librsync.rs_rdiff_delta(signature_file, content_file, target_file_path)
+    when :turbopatch
+      # turbopatch requires building a signature file out of target file
+      block_size = read_block_len(signature_file)
+      Librsync.rs_rdiff_sig(content_file, temp_signature_path, block_size)
+
+      raise "Couldn't create new signature path" unless File.exist?(temp_signature_path)
+
+      ::PatchKitTools::TurboPatch.delta(signature_file, temp_signature_path, content_file, target_file_path,
+                                        1024 * 1024 * 128) # the same magic number as on the server
+    end
+  ensure
+    File.unlink(temp_signature_path) if File.exists?(temp_signature_path)
+  end
+
+  def self.read_block_len(signature_file)
+    File.open(signature_file, 'rb') do |file|
+      # Skip the magic number (4 bytes)
+      file.seek(4, IO::SEEK_SET)
+
+      # Read block_len (4 bytes)
+      block_len = file.read(4).unpack('L')[0]
+      block_len
     end
   end
 end

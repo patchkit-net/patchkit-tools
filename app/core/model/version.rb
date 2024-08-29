@@ -55,6 +55,11 @@ module PatchKitTools
         response[:key]
       end
 
+      def content_summary
+        path = construct_path("1/apps/#{app.secret}/versions/#{id}/content_summary")
+        PatchKitAPI.get(path)
+      end
+
       def download_signatures(offset: 0, &block)
         path = construct_path("1/apps/#{app.secret}/versions/#{id}/signatures/url")
         resp = PatchKitAPI.get(path)

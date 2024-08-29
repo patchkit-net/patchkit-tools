@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [3.6.0]
 ### Added
+- TurboPatch Support
 - `diff_fast` mode support for `make-version` command.
 
 ## [3.5.1]

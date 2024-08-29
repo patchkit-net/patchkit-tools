@@ -22,7 +22,7 @@ module PatchKitTools
       end
       @only_zero_offsets
     rescue StandardError => e
-      puts "Verification failed: #{e.message}"
+      puts "Verification failed: #{e.message} on #{@file_path}"
       false
     end
 
@@ -36,6 +36,7 @@ module PatchKitTools
     def verify_commands(file)
       while !file.eof?
         command = file.read(1).ord
+        # p command.to_s(16)
         case command
         when 0x45..0x54
           verify_copy_command(file, command)
@@ -54,6 +55,8 @@ module PatchKitTools
       arg1_len, arg2_len = command_arg_lengths(command)
       start = read_integer(file, arg1_len)
       length = read_integer(file, arg2_len)
+      # puts "Copy command: start=#{start}, length=#{length}"
+
       @only_zero_offsets = false if start != 0
     end
 
@@ -80,8 +83,11 @@ module PatchKitTools
       end
     end
 
-    def read_integer(file, bytes)
-      file.read(bytes).unpack("C#{bytes}").reduce(0) { |acc, byte| (acc << 8) | byte }
+    def read_integer(file, byte_count)
+      bytes = file.read(byte_count)
+      # puts "Read bytes (hex): #{bytes.unpack('H*').first}"
+
+      bytes.unpack("C#{byte_count}").reduce(0) { |acc, byte| (acc << 8) | byte }
     end
   end
 end
