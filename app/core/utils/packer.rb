@@ -19,16 +19,19 @@ class Packer
   end
   def open(file)
     @file = file
-    @io = File.open(file.is_a?(String) ? file : file[0], "wb")
-    @io_proxy = PatchKitTools::SHA1IOProxy.new(@io)
     begin
 
       @processor =
         case @algorithm
         when :zip
+          # does not open io for zip, because it can result in permission denied on zip close on Windows machines
+
           raise "expect one file path" unless file.is_a?(String)
           Zip::File.open(@file, true)
         when :pack1
+          @io = File.open(file.is_a?(String) ? file : file[0], "wb")
+          @io_proxy = PatchKitTools::SHA1IOProxy.new(@io)
+
           raise "expect array of two files" unless file.is_a?(Array) && file.size == 2
           packer = Pack1Packer.new
           packer.encrypted_key = @key
@@ -45,8 +48,8 @@ class Packer
         end
       end
     ensure
-      @io_proxy.close
-      @io.close
+      @io_proxy&.close
+      @io&.close
     end
 
     self
@@ -57,7 +60,7 @@ class Packer
     # Normally, we could calculate it on close, but let's not do it for now as SHA1 are not needed in every case.
     # This is bound to be changed, but then we might switch to TAR packages.
     if @algorithm != :zip
-      @io_proxy.sha1
+      @io_proxy&.sha1
     end
   end
 
@@ -75,6 +78,8 @@ class Packer
     when :zip
       @processor.close
     when :pack1
+      raise "@io_proxy is nil" if @io_proxy.nil?
+
       @processor.pack(@io_proxy, @file[1])
     end
   end

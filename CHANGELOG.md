@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [UNRELEASED]
 ### Fixed
 - Signatures downloading could fail in come cases when the signatures file was larger than 512 megabytes
+- Diff processing: On Windows, diff processing could end with a permission denied error
 
 ## [3.6.0]
 ### Added
