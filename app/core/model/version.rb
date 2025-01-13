@@ -103,6 +103,15 @@ module PatchKitTools
             end
           end
         end
+      rescue APIError => e
+        # Hack for OpenLoot
+        if e.code.to_i == 404
+          puts "Signatures not found, will try again in 1 minute..."
+          sleep 60
+          retry
+        else
+          raise e
+        end
       end
 
       def download_signatures_fallback(offset: 0)
