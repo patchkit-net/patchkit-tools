@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [3.6.2]
+### Improvements
+- Use underscores in signatures file names to avoid AV software hooks
+
 ## [3.6.1]
 ### Fixed
 - Signatures downloading could fail in come cases when the signatures file was larger than 512 megabytes
