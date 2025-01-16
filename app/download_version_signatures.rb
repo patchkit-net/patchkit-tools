@@ -118,6 +118,7 @@ module PatchKitTools
 
       if progress_bar
         progress_bar.print(content_size, "Signatures downloaded.", force: true)
+        puts
       else
         puts "Signatures downloaded."
       end

@@ -160,6 +160,7 @@ module PatchKitVersionDiff
       end
 
       progress_bar.print(content_files.size, "All files processed!", force: true)
+      puts
 
       output_file_size =
         if output_file.is_a?(Array)
