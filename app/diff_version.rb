@@ -81,7 +81,7 @@ module PatchKitTools
 
         puts "Unpacking signatures..."
 
-        ZipHelper.unzip(self.signatures, temporary_signatures_directory)
+        ZipHelper.unzip(self.signatures, temporary_signatures_directory, add_underscores_to_files: true)
 
         puts "Creating diff..."
 
@@ -98,7 +98,8 @@ module PatchKitTools
                                           packaging_algorithm: self.algorithm,
                                           delta_algorithm: self.delta_algorithm,
                                           pack1_key: pack1_key,
-                                          previous_files_hashes: self.previous_files_hashes)
+                                          previous_files_hashes: self.previous_files_hashes,
+                                          signatures_are_underscored: true)
         diff_summary = create_diff_result.diff_summary
         @sha1 = create_diff_result.sha1
 
