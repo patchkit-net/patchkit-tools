@@ -1,6 +1,8 @@
 require 'thread'
 require 'concurrent'
+require 'securerandom'
 
+require_relative 'utils/ext.rb'
 require_relative 'utils/librsync.rb'
 require_relative 'utils/turbo_patch.rb'
 require_relative 'utils/xxhash.rb'
@@ -10,6 +12,7 @@ require_relative 'utils/thread_pool.rb'
 require_relative 'utils/packer.rb'
 require_relative 'utils/stopwatch.rb'
 require_relative 'utils/delta_file_verifier.rb'
+require_relative 'utils/progress_bar.rb'
 
 module PatchKitVersionDiff
   def self.get_diff_summary(content_files:, signature_files:, unchanged_files:, output_file_size:, uncompressed_size:,
@@ -21,7 +24,7 @@ module PatchKitVersionDiff
 
     removed_files = signature_files - content_files
     added_files = content_files - signature_files
-    modified_files = content_files - added_files
+    modified_files = content_files & signature_files
 
     diff_summary = Hash.new
     diff_summary["size"] = output_file_size
@@ -41,11 +44,15 @@ module PatchKitVersionDiff
   end
 
   # Creates diff and returns diff summary
+  # signatures_dir is a directory with unpacked signatures files.
+  # signatures_are_underscored is a boolean flag that indicates if signatures files (not directories) might be saved with '_' postfix at the end of it,
+  # this is sometimes done to prevent the operating system from calling file scanning on dll and exe files
   def self.create_diff(files_dir, signatures_dir, temp_dir, output_file,
                        packaging_algorithm: :zip,
                        delta_algorithm: :librsync,
                        pack1_key: nil,
-                       previous_files_hashes: # the format is path => hash string (hex)
+                       previous_files_hashes:, # the format is path => hash string (hex)
+                       signatures_are_underscored: false
   )
 
     if packaging_algorithm == :pack1
@@ -62,6 +69,10 @@ module PatchKitVersionDiff
       content_files = FileHelper.list_relative(files_dir)
       unchanged_files = []
       signature_files = FileHelper.list_relative(signatures_dir)
+
+      # Signatures files might be saved with '_' postfix at the end of it
+      signature_files_names = signature_files.map { |f| signatures_are_underscored && !File.directory?(f) ? f.chomp('_') : f }
+
       progress_bar = ProgressBar.new(content_files.size)
 
       file_number = 1
@@ -74,11 +85,16 @@ module PatchKitVersionDiff
           # skip all the dirs, this is the default behavior
           next unless File.file? content_file_abs
 
-          if signature_files.include? content_file
+          if signature_files_names.include? content_file
             # File changed, add delta
             pool.post do
               begin
                 signature_file_abs = File.join(signatures_dir, content_file)
+
+                # readd underscore if it was removed
+                signature_file_abs += '_' if signatures_are_underscored
+
+                raise "Signature file #{signature_file_abs} does not exist" unless File.exist?(signature_file_abs)
 
                 delta_file_abs = File.join(temp_dir, content_file)
                 delta_file_abs_dir = File.dirname(delta_file_abs)
@@ -89,13 +105,12 @@ module PatchKitVersionDiff
                             target_file_path: delta_file_abs, algorithm: delta_algorithm,
                             temp_dir: temp_dir)
 
+                raise "Delta file #{delta_file_abs} does not exist" unless File.exist?(delta_file_abs)
+
                 xxhash_int = ::PatchKitTools::Xxhash.hash(content_file_abs, :xxh32, 42)
                 if previous_files_hashes.present? && previous_files_hashes[content_file].to_i(16) == xxhash_int
                   unchanged_files << content_file
                 end
-
-                # Librsync.rs_rdiff_delta(signature_file_abs, content_file_abs, delta_file_abs)
-                # unchanged_files << content_file if DeltaFileVerifier.verify(delta_file_abs)
 
                 queue << { delta_file_path: delta_file_abs, content_file_name: content_file }
               rescue => e
@@ -155,7 +170,7 @@ module PatchKitVersionDiff
 
       diff_summary = get_diff_summary(
         content_files: add_slashes_to_empty_dirs(files_dir, content_files),
-        signature_files: add_slashes_to_empty_dirs(signatures_dir, signature_files),
+        signature_files: add_slashes_to_empty_dirs(signatures_dir, signature_files_names),
         unchanged_files: unchanged_files,
         output_file_size: output_file_size,
         uncompressed_size: FileHelper.get_dir_size(files_dir),
@@ -194,7 +209,7 @@ module PatchKitVersionDiff
                                         1024 * 1024 * 128) # the same magic number as on the server
     end
   ensure
-    File.unlink(temp_signature_path) if File.exists?(temp_signature_path)
+    File.unlink(temp_signature_path) if temp_signature_path && File.exist?(temp_signature_path)
   end
 
   def self.read_block_len(signature_file)
@@ -203,7 +218,16 @@ module PatchKitVersionDiff
       file.seek(4, IO::SEEK_SET)
 
       # Read block_len (4 bytes)
-      block_len = file.read(4).unpack('L')[0]
+      read_bytes = file.read(4)
+      if read_bytes.nil?
+        puts "Couldn't read block length from signature file #{signature_file}, will try again in 5 seconds..."
+        sleep 5
+        read_bytes = file.read(4)
+
+        raise "Couldn't read block length from signature file #{signature_file}" if read_bytes.nil?
+      end
+
+      block_len = read_bytes.unpack('L')[0]
       block_len
     end
   end
