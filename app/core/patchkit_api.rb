@@ -25,7 +25,7 @@ module PatchKitAPI
         end
 
       if @api_key
-        uri_str += "?api_key=#{@api_key}"
+        uri_str += "?api_key=#{@api_key}" unless uri_str.include?('api_key=')
       end
 
       URI.parse(uri_str)
