@@ -38,7 +38,7 @@ module Librsync
     ]
 
     search_dirs.each do |search_dir|
-      path = File.join("#{search_dir}", lib_name)
+      path = File.expand_path(File.join(search_dir, lib_name))
       return path if File.exist? path
     end
 

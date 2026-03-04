@@ -14,6 +14,7 @@ require 'base64'
 require_relative 'core/patchkit_api.rb'
 require_relative 'core/patchkit_tools.rb'
 require_relative 'core/patchkit_version_diff.rb'
+require_relative 'core/utils/windows_long_path.rb'
 
 module PatchKitTools
   class DiffVersionTool < PatchKitTools::BaseTool
@@ -75,7 +76,8 @@ module PatchKitTools
       self.algorithm = :zip if self.algorithm.nil?
       self.delta_algorithm = :librsync if self.delta_algorithm.nil?
 
-      Dir.mktmpdir do |temp_dir|
+      temp_dir = Dir.mktmpdir
+      begin
         temporary_signatures_directory = "#{temp_dir}/signatures"
         temporary_diff_directory = "#{temp_dir}/diff"
 
@@ -108,12 +110,14 @@ module PatchKitTools
         puts
         puts "Saving diff summary..."
 
-        diff_summary_file = File.open(self.diff_summary, 'wb')
+        diff_summary_file = File.open(WindowsLongPath.fix(self.diff_summary), 'wb')
         begin
           diff_summary_file.write diff_summary
         ensure
           diff_summary_file.close
         end
+      ensure
+        WindowsLongPath.safe_rm_rf(temp_dir)
       end
     end
   end

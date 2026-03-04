@@ -1,4 +1,5 @@
 require 'stringio'
+require_relative 'windows_long_path'
 
 module PatchKitTools
 
@@ -16,7 +17,7 @@ module PatchKitTools
     end
 
     def verify
-      File.open(@file_path, 'rb') do |file|
+      File.open(WindowsLongPath.fix(@file_path), 'rb') do |file|
         verify_magic_number(file)
         verify_commands(file)
       end

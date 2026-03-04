@@ -6,7 +6,7 @@ module PatchKitTools
     def bits
       host_cpu = RbConfig::CONFIG['host_cpu']
       host_os = RbConfig::CONFIG['host_os']
-      if host_cpu =~ /_64$/ || RUBY_PLATFORM =~ /x86_64/
+      if host_cpu =~ /_64$/ || host_cpu == 'x64' || RUBY_PLATFORM =~ /x86_64/ || RUBY_PLATFORM =~ /\bx64\b/
         64
       elsif RUBY_PLATFORM == 'java' && ENV_JAVA['sun.arch.data.model'] # "32" or "64":http://www.ruby-forum.com/topic/202173#880613
         ENV_JAVA['sun.arch.data.model'].to_i
@@ -20,7 +20,8 @@ module PatchKitTools
     end
 
     def x86?
-      RbConfig::CONFIG['host_cpu'].downcase.include?('x86')
+      cpu = RbConfig::CONFIG['host_cpu'].downcase
+      cpu.include?('x86') || cpu == 'x64'
     end
 
     def aarch64?

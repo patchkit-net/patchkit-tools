@@ -2,6 +2,8 @@ require 'openssl'
 require 'digest'
 require 'json'
 
+require_relative 'windows_long_path'
+
 ##
 # Packer for packing files in encrypted and random-read friendly manner.
 # All files are separately:
@@ -45,7 +47,7 @@ class Pack1Packer
     f.ftype = :regular
     f.name = name
     f.source = source
-    f.mode = format("%o", File.stat(source).mode)
+    f.mode = format("%o", File.stat(WindowsLongPath.fix(source)).mode)
     @files << f
   end
 
@@ -69,10 +71,10 @@ class Pack1Packer
     directory_path = Pathname.new(directory)
     Dir.glob("#{directory}/**/*").each do |file|
       relative = Pathname.new(file).relative_path_from(directory_path).to_s
-      if File.directory? file
+      if File.directory?(WindowsLongPath.fix(file))
         add_directory(relative)
-      elsif File.symlink? file
-        add_symlink(File.readlink(file), relative)
+      elsif File.symlink?(WindowsLongPath.fix(file))
+        add_symlink(File.readlink(WindowsLongPath.fix(file)), relative)
       else
         add_file(file, relative)
       end
@@ -92,7 +94,7 @@ class Pack1Packer
       offset = 0
 
       io = if archive.is_a?(String)
-        File.open(archive, "wb")
+        File.open(WindowsLongPath.fix(archive), "wb")
       else
         archive
       end
@@ -121,7 +123,7 @@ class Pack1Packer
       read = 0
       written = 0
 
-      File.open(source) do |f|
+      File.open(WindowsLongPath.fix(source)) do |f|
         until f.eof?
           bytes = f.read(BUFFER_SIZE)
           read += bytes.bytesize
@@ -158,7 +160,7 @@ class Pack1Packer
         files: files
       }
 
-      File.write(path, JSON.generate(json))
+      File.write(WindowsLongPath.fix(path), JSON.generate(json))
     end
 
     def compress(data, **args)

@@ -1,6 +1,7 @@
 require 'zip'
 require_relative 'pack1_packer'
 require_relative 'sha1_io_proxy'
+require_relative 'windows_long_path'
 
 # Packs the file, generates SHA1 and makes it available
 class Packer
@@ -29,7 +30,7 @@ class Packer
           raise "expect one file path" unless file.is_a?(String)
           Zip::File.open(@file, true)
         when :pack1
-          @io = File.open(file.is_a?(String) ? file : file[0], "wb")
+          @io = File.open(WindowsLongPath.fix(file.is_a?(String) ? file : file[0]), "wb")
           @io_proxy = PatchKitTools::SHA1IOProxy.new(@io)
 
           raise "expect array of two files" unless file.is_a?(Array) && file.size == 2
@@ -67,7 +68,7 @@ class Packer
   def add(entry_name:, source_file_path:)
     case @algorithm
     when :zip
-      @processor.add(entry_name, source_file_path)
+      @processor.add(entry_name, WindowsLongPath.fix(source_file_path))
     when :pack1
       @processor.add_file(source_file_path, entry_name)
     end

@@ -19,6 +19,7 @@ require_relative 'update_version.rb'
 require_relative 'upload_version.rb'
 require_relative 'core/model/app'
 require_relative 'core/utils/waiter'
+require_relative 'core/utils/windows_long_path'
 
 include PatchKitTools::Model
 
@@ -227,7 +228,7 @@ module PatchKitTools
       @changelog ||= if mode_import? && @import_copy_changelog
                        source_version.changelog
                      elsif !@changelog_file.nil?
-                       File.read(@changelog_file)
+                       File.read(WindowsLongPath.fix(@changelog_file))
                      else
                        @changelog
                      end
@@ -294,7 +295,7 @@ module PatchKitTools
         if @mode == 'diff_fast'
           files = [diff_package, "#{diff_package}.meta"]
           files.each do |file|
-            raise "File #{file} doesn't exist" unless File.exist?(file)
+            raise "File #{file} doesn't exist" unless File.exist?(WindowsLongPath.fix(file))
           end
 
           diff_package = files.join(',')
@@ -384,7 +385,7 @@ module PatchKitTools
 
           if !@files.end_with?('.apk')
 
-            if File.directory?(@files)
+            if File.directory?(WindowsLongPath.fix(@files))
               apks = Dir["#{@files}/*.apk"]
               if apks.size == 1
                 @files = apks[0]
@@ -396,7 +397,7 @@ module PatchKitTools
             else
               raise_error "Given file #{@files} is not an apk file."
             end
-          elsif !File.exist?(@files)
+          elsif !File.exist?(WindowsLongPath.fix(@files))
             raise_error "Given file #{@files} doesn't exist"
           end
         else

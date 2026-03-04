@@ -2,6 +2,7 @@ require 'securerandom'
 require_relative 'limited_reader'
 require_relative 'retry'
 require_relative '../patchkit_api'
+require_relative 'windows_long_path'
 
 module PatchKitTools
   class S3Uploader
@@ -25,10 +26,10 @@ module PatchKitTools
     end
 
     def upload_file(file)
-      @total = File.size(file)
+      @total = File.size(WindowsLongPath.fix(file))
       create_upload_object(@total)
 
-      File.open(file, 'rb') do |f|
+      File.open(WindowsLongPath.fix(file), 'rb') do |f|
         offset = 0
         @on_progress.each { |block| block.call(offset, @total) }
 

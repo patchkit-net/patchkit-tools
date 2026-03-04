@@ -2,6 +2,7 @@ require 'fileutils'
 
 require_relative 'printer'
 require_relative 'lockable'
+require_relative 'utils/windows_long_path'
 
 # Base class for every tool
 
@@ -229,7 +230,7 @@ module PatchKitTools
           yield dir
         ensure
           begin
-            FileUtils.rm_rf dir
+            WindowsLongPath.safe_rm_rf(dir)
           rescue => e
             puts "Error removing directory #{dir}: #{e.message}"
             puts "Make sure to clean it up manually afterwards!"

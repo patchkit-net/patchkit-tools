@@ -12,6 +12,7 @@ require_relative 'core/patchkit_tools.rb'
 require_relative 'core/base_tool2.rb'
 require_relative 'core/model/app'
 require_relative 'core/model/version'
+require_relative 'core/utils/windows_long_path'
 
 module PatchKitTools
   class ChannelMakeVersionTool < PatchKitTools::BaseTool2
@@ -116,7 +117,7 @@ module PatchKitTools
     def changelog
       return if !@changelog && !@changelog_file
       return @changelog if @changelog
-      File.read(@changelog_file)
+      File.read(WindowsLongPath.fix(@changelog_file))
     end
   end
 end

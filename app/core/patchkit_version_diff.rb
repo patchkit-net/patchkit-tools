@@ -13,6 +13,7 @@ require_relative 'utils/packer.rb'
 require_relative 'utils/stopwatch.rb'
 require_relative 'utils/delta_file_verifier.rb'
 require_relative 'utils/progress_bar.rb'
+require_relative 'utils/windows_long_path.rb'
 
 module PatchKitVersionDiff
   def self.get_diff_summary(content_files:, signature_files:, unchanged_files:, output_file_size:, uncompressed_size:,
@@ -64,7 +65,7 @@ module PatchKitVersionDiff
       pool = Concurrent::FixedThreadPool.new(PatchKitConfig.rdiff_thread_count)
       sha1 = nil
 
-      FileUtils.mkdir_p temp_dir unless File.directory?(temp_dir)
+      FileUtils.mkdir_p(WindowsLongPath.fix(temp_dir)) unless File.directory?(WindowsLongPath.fix(temp_dir))
 
       content_files = FileHelper.list_relative(files_dir)
       unchanged_files = []
@@ -83,7 +84,7 @@ module PatchKitVersionDiff
           content_file_abs = File.join(files_dir, content_file)
 
           # skip all the dirs, this is the default behavior
-          next unless File.file? content_file_abs
+          next unless File.file?(WindowsLongPath.fix(content_file_abs))
 
           if signature_files_names.include? content_file
             # File changed, add delta
@@ -94,20 +95,20 @@ module PatchKitVersionDiff
                 # readd underscore if it was removed
                 signature_file_abs += '_' if signatures_are_underscored
 
-                raise "Signature file #{signature_file_abs} does not exist" unless File.exist?(signature_file_abs)
+                raise "Signature file #{signature_file_abs} does not exist" unless File.exist?(WindowsLongPath.fix(signature_file_abs))
 
                 delta_file_abs = File.join(temp_dir, content_file)
                 delta_file_abs_dir = File.dirname(delta_file_abs)
 
-                FileUtils.mkdir_p delta_file_abs_dir unless File.directory?(delta_file_abs_dir)
+                FileUtils.mkdir_p(WindowsLongPath.fix(delta_file_abs_dir)) unless File.directory?(WindowsLongPath.fix(delta_file_abs_dir))
 
                 build_delta(signature_file: signature_file_abs, content_file: content_file_abs,
                             target_file_path: delta_file_abs, algorithm: delta_algorithm,
                             temp_dir: temp_dir)
 
-                raise "Delta file #{delta_file_abs} does not exist" unless File.exist?(delta_file_abs)
+                raise "Delta file #{delta_file_abs} does not exist" unless File.exist?(WindowsLongPath.fix(delta_file_abs))
 
-                xxhash_int = ::PatchKitTools::Xxhash.hash(content_file_abs, :xxh32, 42)
+                xxhash_int = ::PatchKitTools::Xxhash.hash(WindowsLongPath.short_path(content_file_abs), :xxh32, 42)
                 if previous_files_hashes.present? && previous_files_hashes[content_file].to_i(16) == xxhash_int
                   unchanged_files << content_file
                 end
@@ -129,10 +130,10 @@ module PatchKitVersionDiff
 
         if output_file.is_a?(Array)
           output_file.each do |f|
-            FileUtils.rm_rf f if File.exist? f
+            WindowsLongPath.safe_rm_rf(f) if File.exist?(WindowsLongPath.fix(f))
           end
         else
-          FileUtils.rm_rf output_file if File.exist? output_file
+          WindowsLongPath.safe_rm_rf(output_file) if File.exist?(WindowsLongPath.fix(output_file))
         end
 
         packer = Packer.open(output_file, algorithm: packaging_algorithm, key: pack1_key) do |packer|
@@ -164,9 +165,9 @@ module PatchKitVersionDiff
 
       output_file_size =
         if output_file.is_a?(Array)
-          File.size(output_file[0])
+          File.size(WindowsLongPath.fix(output_file[0]))
         else
-          File.size(output_file)
+          File.size(WindowsLongPath.fix(output_file))
         end
 
       diff_summary = get_diff_summary(
@@ -182,39 +183,46 @@ module PatchKitVersionDiff
       OpenStruct.new(sha1: sha1, diff_summary: diff_summary)
 
     ensure
-      FileUtils.rm_rf temp_dir
+      WindowsLongPath.safe_rm_rf(temp_dir)
     end
   end
 
   def self.add_slashes_to_empty_dirs(base_dir, files)
     files.map do |f|
       path = File.join(base_dir, f)
-      File.directory?(path) ? "#{f}/" : f
+      File.directory?(WindowsLongPath.fix(path)) ? "#{f}/" : f
     end
   end
 
   def self.build_delta(signature_file:, content_file:, target_file_path:, algorithm:, temp_dir:)
     temp_signature_path = File.join(temp_dir, "___sig#{SecureRandom.hex(6)}")
 
+    # Native C libraries (librsync, turbopatch) use fopen() which can't handle
+    # paths > 260 chars on Windows. Use 8.3 short paths to work around this.
+    sig_path = WindowsLongPath.short_path(signature_file)
+    src_path = WindowsLongPath.short_path(content_file)
+    dst_path = WindowsLongPath.short_path(target_file_path)
+    tmp_sig_path = WindowsLongPath.short_path(temp_signature_path)
+
     case algorithm&.to_sym
     when :librsync
-      Librsync.rs_rdiff_delta(signature_file, content_file, target_file_path)
+      Librsync.rs_rdiff_delta(sig_path, src_path, dst_path)
     when :turbopatch
       # turbopatch requires building a signature file out of target file
       block_size = read_block_len(signature_file)
-      Librsync.rs_rdiff_sig(content_file, temp_signature_path, block_size)
+      Librsync.rs_rdiff_sig(src_path, tmp_sig_path, block_size)
 
-      raise "Couldn't create new signature path" unless File.exist?(temp_signature_path)
+      raise "Couldn't create new signature path" unless File.exist?(WindowsLongPath.fix(temp_signature_path))
 
-      ::PatchKitTools::TurboPatch.delta(signature_file, temp_signature_path, content_file, target_file_path,
+      ::PatchKitTools::TurboPatch.delta(sig_path, tmp_sig_path, src_path, dst_path,
                                         1024 * 1024 * 128) # the same magic number as on the server
     end
   ensure
-    File.unlink(temp_signature_path) if temp_signature_path && File.exist?(temp_signature_path)
+    File.unlink(WindowsLongPath.fix(temp_signature_path)) if temp_signature_path && File.exist?(WindowsLongPath.fix(temp_signature_path))
   end
 
   def self.read_block_len(signature_file)
-    File.open(signature_file, 'rb') do |file|
+    File.open(WindowsLongPath.fix(signature_file), 'rb') do |file|
       # Skip the magic number (4 bytes)
       file.seek(4, IO::SEEK_SET)
 

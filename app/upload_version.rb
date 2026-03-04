@@ -16,6 +16,7 @@ require_relative 'core/utils/s3_uploader'
 require_relative 'core/utils/speed_calculator'
 require_relative 'core/model/app'
 require_relative 'core/patchkit_config'
+require_relative 'core/utils/windows_long_path'
 
 require 'rubygems'
 require 'bundler/setup'
@@ -132,7 +133,7 @@ module PatchKitTools
       upload_ids = []
 
       @file.each do |file|
-        file_size = File.size(file)
+        file_size = File.size(WindowsLongPath.fix(file))
         progress_bar = ProgressBar.new(file_size)
 
         speed_calculator = SpeedCalculator.new
@@ -191,7 +192,7 @@ module PatchKitTools
                  version.upload_content!(upload_id: upload_ids[0], sha1: @sha1)
                when 'diff'
                  version.upload_diff!(upload_id: upload_ids,
-                                      diff_summary: File.read(@diff_summary),
+                                      diff_summary: File.read(WindowsLongPath.fix(@diff_summary)),
                                       sha1: @sha1)
                else
                  raise "unknown mode: #{@mode}"
@@ -206,10 +207,10 @@ module PatchKitTools
         PatchKitAPI.display_job_progress(@processing_job_guid)
       end
     end
-  end
 
-  def app
-    @app ||= App.find_by_secret!(@secret)
+    def app
+      @app ||= App.find_by_secret!(@secret)
+    end
   end
 end
 

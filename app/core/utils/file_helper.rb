@@ -1,3 +1,5 @@
+require_relative 'windows_long_path'
+
 module FileHelper
   # Lists all files in directory and returns their relative path
   def self.list_relative(dir)
@@ -20,7 +22,7 @@ module FileHelper
     total_size = 0
     Dir.glob(File.join(dir, '**', '*'), File::FNM_DOTMATCH) do |file|
       next if file == '.' || file == '..'
-      total_size += File.size(file) if File.file?(file)
+      total_size += File.size(WindowsLongPath.fix(file)) if File.file?(WindowsLongPath.fix(file))
     end
     total_size
   end
