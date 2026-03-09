@@ -194,6 +194,12 @@ module PatchKitVersionDiff
     end
   end
 
+  # Minimum valid delta size: 4 bytes magic + 1 byte end command = 5 bytes.
+  # A delta file should never be 0 bytes.
+  MIN_DELTA_FILE_SIZE = 5
+  MAX_DELTA_RETRIES = 3
+  DELTA_RETRY_DELAY_SECONDS = 3
+
   def self.build_delta(signature_file:, content_file:, target_file_path:, algorithm:, temp_dir:)
     temp_signature_path = File.join(temp_dir, "___sig#{SecureRandom.hex(6)}")
 
@@ -204,18 +210,38 @@ module PatchKitVersionDiff
     dst_path = WindowsLongPath.short_path(target_file_path)
     tmp_sig_path = WindowsLongPath.short_path(temp_signature_path)
 
-    case algorithm&.to_sym
-    when :librsync
-      Librsync.rs_rdiff_delta(sig_path, src_path, dst_path)
-    when :turbopatch
-      # turbopatch requires building a signature file out of target file
-      block_size = read_block_len(signature_file)
-      Librsync.rs_rdiff_sig(src_path, tmp_sig_path, block_size)
+    MAX_DELTA_RETRIES.times do |attempt|
+      result = case algorithm&.to_sym
+      when :librsync
+        Librsync.rs_rdiff_delta(sig_path, src_path, dst_path)
+      when :turbopatch
+        # turbopatch requires building a signature file out of target file
+        block_size = read_block_len(signature_file)
+        Librsync.rs_rdiff_sig(src_path, tmp_sig_path, block_size)
 
-      raise "Couldn't create new signature path" unless File.exist?(WindowsLongPath.fix(temp_signature_path))
+        raise "Couldn't create new signature path" unless File.exist?(WindowsLongPath.fix(temp_signature_path))
 
-      ::PatchKitTools::TurboPatch.delta(sig_path, tmp_sig_path, src_path, dst_path,
-                                        1024 * 1024 * 128) # the same magic number as on the server
+        ::PatchKitTools::TurboPatch.delta(sig_path, tmp_sig_path, src_path, dst_path,
+                                          1024 * 1024 * 128) # the same magic number as on the server
+      end
+
+      target_fixed = WindowsLongPath.fix(target_file_path)
+      delta_size = File.exist?(target_fixed) ? File.size(target_fixed) : 0
+
+      if result != 0 || delta_size < MIN_DELTA_FILE_SIZE
+        if attempt < MAX_DELTA_RETRIES - 1
+          puts "Delta generation failed for #{content_file} (result=#{result}, size=#{delta_size}), " \
+               "retrying in #{DELTA_RETRY_DELAY_SECONDS}s (attempt #{attempt + 1}/#{MAX_DELTA_RETRIES})..."
+          File.unlink(target_fixed) if File.exist?(target_fixed)
+          sleep DELTA_RETRY_DELAY_SECONDS
+        else
+          raise "Delta generation failed for #{content_file} after #{MAX_DELTA_RETRIES} attempts " \
+                "(last result=#{result}, size=#{delta_size}). " \
+                "This may be caused by antivirus software locking the file."
+        end
+      else
+        return
+      end
     end
   ensure
     File.unlink(WindowsLongPath.fix(temp_signature_path)) if temp_signature_path && File.exist?(WindowsLongPath.fix(temp_signature_path))
