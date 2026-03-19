@@ -11,4 +11,4 @@ build:
 
 bash:
 	docker build -t $(RUNNER_IMAGE) -f docker/running/Dockerfile .
-	docker run -it --rm -v $(PWD):/workdir $(RUNNER_IMAGE) bash
+	docker run --network="host" -it --rm -v $(PWD):/workdir -v /tmp:/host_tmp -e HISTFILE=/workdir/.bash_history $(RUNNER_IMAGE) bash

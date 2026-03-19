@@ -16,6 +16,7 @@ require_relative 'core/utils/s3_uploader'
 require_relative 'core/utils/speed_calculator'
 require_relative 'core/model/app'
 require_relative 'core/patchkit_config'
+require_relative 'core/utils/windows_long_path'
 
 require 'rubygems'
 require 'bundler/setup'
@@ -26,7 +27,7 @@ include PatchKitTools::Model
 
 module PatchKitTools
   class UploadVersionTool < PatchKitTools::BaseTool2
-    UPLOAD_MODES = ["content", "diff"]
+    UPLOAD_MODES = ["content", "diff", "diff_fast"]
 
     # after successful upload, you can read the result job GUID here
     attr_reader :processing_job_guid
@@ -37,7 +38,8 @@ module PatchKitTools
                 :mode,
                 :file,
                 :diff_summary,
-                :wait_for_job
+                :wait_for_job,
+                :sha1
 
 
     def initialize(argv = ARGV)
@@ -81,7 +83,7 @@ module PatchKitTools
         end
 
         opts.on("-f", "--file <file>",
-          "file to upload") do |file|
+          "file to upload, split with comma if multiple files") do |file|
           @file = file
         end
 
@@ -115,7 +117,7 @@ module PatchKitTools
       check_if_option_exists("api_key")
       check_if_option_exists("version")
       check_if_valid_option_value("mode", UPLOAD_MODES)
-      check_if_option_file_exists_and_readable("file")
+      check_if_option_file_exists_and_readable("file", array: true)
       check_if_option_file_exists_and_readable("diff_summary") if @mode == "diff"
 
       acquire_app_processing_global_lock!(app)
@@ -128,62 +130,70 @@ module PatchKitTools
 
       puts "Uploading #{@mode}..."
 
-      file_size = File.size(@file)
-      progress_bar = ProgressBar.new(file_size)
+      upload_ids = []
 
-      speed_calculator = SpeedCalculator.new
+      @file.each do |file|
+        file_size = File.size(WindowsLongPath.fix(file))
+        progress_bar = ProgressBar.new(file_size)
 
-      uploader = S3Uploader.new(@api_key)
-      uploader.on(:progress) do |bytes_sent, bytes_total|
-        speed_calculator.submit(bytes_sent)
+        speed_calculator = SpeedCalculator.new
 
-        text = if speed_calculator.ready?
-                 format("Uploading %.2f MB of %.2f MB (%.2f MB/s)",
-                        bytes_sent / 1024.0**2,
-                        bytes_total / 1024.0**2,
-                        speed_calculator.speed_per_second / 1024.0**2)
-               else
-                 format("Uploading %.2f MB of %.2f MB",
-                        bytes_sent / 1024.0**2,
-                        bytes_total / 1024.0**2)
-               end
+        uploader = S3Uploader.new(@api_key)
+        uploader.on(:progress) do |bytes_sent, bytes_total|
+          speed_calculator.submit(bytes_sent)
 
-        progress_bar.print(bytes_sent, text)
-      end
+          text = if speed_calculator.ready?
+                   format("Uploading %.2f MB of %.2f MB (%.2f MB/s)",
+                          bytes_sent / 1024.0**2,
+                          bytes_total / 1024.0**2,
+                          speed_calculator.speed_per_second / 1024.0**2)
+                 else
+                   format("Uploading %.2f MB of %.2f MB",
+                          bytes_sent / 1024.0**2,
+                          bytes_total / 1024.0**2)
+                 end
 
-      loop do
-        begin
-          puts
-          uploader.upload_file(@file)
-          break
-        rescue => e
-          puts
-          puts "Error during file upload: #{e}"
-          @retry_count -= 1
-          if @retry_count < 0
-            if @ask_to_try_again
-              if ask_yes_or_no("Try again?", 'y')
-                next
+          progress_bar.print(bytes_sent, text)
+        end
+
+        loop do
+          begin
+            puts
+            uploader.upload_file(file)
+            break
+          rescue => e
+            puts
+            puts "Error during file upload: #{e}"
+            @retry_count -= 1
+            if @retry_count < 0
+              if @ask_to_try_again
+                if ask_yes_or_no("Try again?", 'y')
+                  next
+                else
+                  raise CommandLineError, "Couldn't upload the file"
+                end
               else
                 raise CommandLineError, "Couldn't upload the file"
               end
-            else
-              raise CommandLineError, "Couldn't upload the file"
             end
           end
         end
-      end
-      upload_id = uploader.upload_id
+        upload_ids << uploader.upload_id
 
-      progress_bar.print(file_size, "Upload done", force: true)
-      puts
+        progress_bar.print(file_size, "Upload done", force: true)
+        puts
+      end
 
       result = case @mode
                when 'content'
-                 version.upload_content!(upload_id: upload_id)
+                 if upload_ids.size > 1
+                   raise "Multiple uploads not supported in content mode"
+                 end
+                 version.upload_content!(upload_id: upload_ids[0], sha1: @sha1)
                when 'diff'
-                 version.upload_diff!(upload_id: upload_id,
-                                      diff_summary: File.read(@diff_summary))
+                 version.upload_diff!(upload_id: upload_ids,
+                                      diff_summary: File.read(WindowsLongPath.fix(@diff_summary)),
+                                      sha1: @sha1)
                else
                  raise "unknown mode: #{@mode}"
                end
@@ -197,10 +207,10 @@ module PatchKitTools
         PatchKitAPI.display_job_progress(@processing_job_guid)
       end
     end
-  end
 
-  def app
-    @app ||= App.find_by_secret!(@secret)
+    def app
+      @app ||= App.find_by_secret!(@secret)
+    end
   end
 end
 

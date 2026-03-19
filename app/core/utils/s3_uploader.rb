@@ -2,6 +2,7 @@ require 'securerandom'
 require_relative 'limited_reader'
 require_relative 'retry'
 require_relative '../patchkit_api'
+require_relative 'windows_long_path'
 
 module PatchKitTools
   class S3Uploader
@@ -25,10 +26,10 @@ module PatchKitTools
     end
 
     def upload_file(file)
-      @total = File.size(file)
+      @total = File.size(WindowsLongPath.fix(file))
       create_upload_object(@total)
 
-      File.open(file, 'rb') do |f|
+      File.open(WindowsLongPath.fix(file), 'rb') do |f|
         offset = 0
         @on_progress.each { |block| block.call(offset, @total) }
 
@@ -81,11 +82,18 @@ module PatchKitTools
           io.rewind # rewind in case this is a retry attempt
 
           http = Net::HTTP.new(uri.host, uri.port)
-          http.use_ssl = true
+          http.use_ssl = uri.scheme == 'https'
           http.verify_mode = OpenSSL::SSL::VERIFY_NONE
 
           request = Net::HTTP::Put.new(uri.request_uri)
-          request['Content-Type'] = ''
+          if uri.host.include? 'localhost'
+            request['Content-Type'] = 'application/octet-stream'
+          else
+            # it's valid for S3 to have blank content type
+            # I don't remember why, but we needed it
+            request['Content-Type'] = ''
+          end
+             
           request['Content-Length'] = size
 
           # accelerated connection is a direct connection, it requires acl header

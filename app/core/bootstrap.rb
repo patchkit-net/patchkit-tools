@@ -3,6 +3,7 @@ require_relative 'tools'
 require_relative 'patchkit_api'
 require_relative 'patchkit_tools'
 require_relative 'version_info'
+require_relative 'utils/ext'
 
 include PatchKitTools
 

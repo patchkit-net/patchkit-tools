@@ -50,6 +50,16 @@ module PatchKitTools
         do_put("1/apps/#{app.secret}/versions/#{id}/diff_file", params)
       end
 
+      def fetch_pack1_key
+        response = do_get("1/apps/#{app.secret}/versions/#{id}/pack1_key")
+        response[:key]
+      end
+
+      def content_summary
+        path = construct_path("1/apps/#{app.secret}/versions/#{id}/content_summary")
+        PatchKitAPI.get(path)
+      end
+
       def download_signatures(offset: 0, &block)
         path = construct_path("1/apps/#{app.secret}/versions/#{id}/signatures/url")
         resp = PatchKitAPI.get(path)
@@ -59,6 +69,14 @@ module PatchKitTools
         if size.zero?
           puts "Cannot download signatures using CDN, falling back to slow direct download"
           return download_signatures_fallback(offset: 0, &block)
+        end
+
+        # That could be done better.
+        # When a link is served as a presigned URL (that starts with s3.REGION), the signautres are expected
+        # to be a complete regular file, therefore no fancy download here
+        if url.include? '//s3.'
+          puts "Got signed url, downloading..."
+          return download_signatures_regular(url: url, size: size, offset: offset, &block)
         end
 
         part_size = 1024**2 * 512
@@ -85,6 +103,15 @@ module PatchKitTools
             end
           end
         end
+      rescue APIError => e
+        # Hack for OpenLoot
+        if e.code.to_i == 404
+          puts "Signatures not found, will try again in 1 minute..."
+          sleep 60
+          retry
+        else
+          raise e
+        end
       end
 
       def download_signatures_fallback(offset: 0)
@@ -92,6 +119,18 @@ module PatchKitTools
         request = PatchKitAPI::ResourceRequest.new(path)
         request.offset = offset
         request.get_response { |r| yield r }
+      end
+
+      def download_signatures_regular(url:, size:, offset: 0)
+        uri = URI(url)
+        Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == 'https') do |http|
+          request = Net::HTTP::Get.new uri
+          request['Range'] = "bytes=#{offset}-" if offset > 0
+
+          http.request request do |response|
+            yield response, size
+          end
+        end
       end
     end
   end

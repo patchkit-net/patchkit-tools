@@ -1,0 +1,3 @@
+## Tests
+
+- Tests should be run using ./run-tests.sh wrapper, eg. tests/test_patchkit_version_diff.rb

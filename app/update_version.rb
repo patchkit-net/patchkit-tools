@@ -11,6 +11,7 @@ $META_END$
 
 require_relative 'core/patchkit_api.rb'
 require_relative 'core/patchkit_tools.rb'
+require_relative 'core/utils/windows_long_path'
 
 module PatchKitTools
   class UpdateVersionTool < PatchKitTools::BaseTool
@@ -71,7 +72,7 @@ module PatchKitTools
 
       form[:label] = self.label unless self.label.nil?
       form[:changelog] = self.changelog unless self.changelog.nil?
-      form[:changelog] = File.open(self.changelog_file, 'rb') { |f| f.read } unless self.changelog_file.nil?
+      form[:changelog] = File.open(WindowsLongPath.fix(self.changelog_file), 'rb') { |f| f.read } unless self.changelog_file.nil?
 
       puts "Updating..."
 

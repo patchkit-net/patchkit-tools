@@ -1,6 +1,7 @@
 require 'rake/testtask'
 # For Bundler.with_clean_env
 require 'bundler/setup'
+require_relative 'app/core/version'
 
 PACKAGE_NAME = "patchkit-tools"
 TRAVELING_RUBY_VERSION = "20210206-2.4.10"
@@ -102,7 +103,7 @@ def create_package(target, os_type = :unix)
 
   sh "mkdir -p packaging/output"
   sh "cd #{package_dir} && zip -r package.zip *"
-  sh "mv #{package_dir}/package.zip packaging/output/#{PACKAGE_NAME}-#{target}.zip"
+  sh "mv #{package_dir}/package.zip packaging/output/#{PACKAGE_NAME}-#{PatchKitTools::VERSION}-#{target}.zip"
   sh "rm -rf #{package_dir}"
 end
 

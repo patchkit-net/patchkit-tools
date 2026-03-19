@@ -13,6 +13,7 @@ require_relative 'core/patchkit_api.rb'
 require_relative 'core/patchkit_tools.rb'
 require_relative 'core/model/app'
 require_relative 'core/base_tool2.rb'
+require_relative 'core/utils/windows_long_path'
 
 include PatchKitTools::Model
 
@@ -63,7 +64,7 @@ module PatchKitTools
       version = Version.find_by_id!(app, @version)
       raise "Cannot find version: #{@version}" if version.nil?
 
-      raise CommandLineError, "Output file exists: #{@output}" if File.exist? @output
+      raise CommandLineError, "Output file exists: #{@output}" if File.exist? WindowsLongPath.fix(@output)
 
       downloaded = 0
       content_size = nil
@@ -73,7 +74,7 @@ module PatchKitTools
       while !finished
         version.download_signatures(offset: downloaded) do |response, size|
 
-          file = File.open(@output, 'ab')
+          file = File.open(WindowsLongPath.fix(@output), 'ab')
           begin
             content_size ||= size
             # raise "Content-Length not returned by the server." if content_size.nil?
@@ -101,23 +102,24 @@ module PatchKitTools
 
           # Read last 1 kilobyte of files to search for end of central directory signature
           # It's to make sure that the zip file has been downloaded correctly
-          File.open(@output, 'rb') do |f|
-            f.pos = [0, File.size(@output) - 1024].max
+          File.open(WindowsLongPath.fix(@output), 'rb') do |f|
+            f.pos = [0, File.size(WindowsLongPath.fix(@output)) - 1024].max
             data = f.read(1024)
-            unless data.include? "\x50\x4b\x05\x06"
+            if !data.include? "\x50\x4b\x05\x06"
               puts "Error while downloading signatures. Will try again in 5 seconds..."
               sleep 5
-              break # makes sure to exit download_signatures block
+              finished = false
+            else
+              finished = true
             end
           end
-
-          finished = true
         end
 
       end # while
 
       if progress_bar
         progress_bar.print(content_size, "Signatures downloaded.", force: true)
+        puts
       else
         puts "Signatures downloaded."
       end

@@ -3,77 +3,13 @@ require 'bundler/setup'
 require 'fiddle'
 require 'fiddle/import'
 require 'rbconfig'
+require_relative 'platform'
 
 # Binding of librsync library
 module Librsync
+  extend PatchKitTools::Platform
+
   private
-
-  # Helper fuctions for choosing right library file
-
-  # Based on https://github.com/rdp/os/blob/953bf8d646f8f6ae2a3609f2a6e21b508e6a021f/lib/os.rb
-  def self.bits
-    host_cpu = RbConfig::CONFIG['host_cpu']
-    host_os = RbConfig::CONFIG['host_os']
-    if host_cpu =~ /_64$/ || RUBY_PLATFORM =~ /x86_64/
-      64
-    elsif RUBY_PLATFORM == 'java' && ENV_JAVA['sun.arch.data.model'] # "32" or "64":http://www.ruby-forum.com/topic/202173#880613
-      ENV_JAVA['sun.arch.data.model'].to_i
-    elsif host_cpu == 'i386'
-      32
-    elsif host_os =~ /32$/ # mingw32, mswin32
-      32
-    else # cygwin only...I think
-      1.size == 8 ? 64 : 32
-    end
-  end
-
-  def self.x86?
-    RbConfig::CONFIG['host_cpu'].downcase.include?('x86')
-  end
-
-  def self.aarch64?
-    RbConfig::CONFIG['host_cpu'].downcase.include?('aarch64')
-  end
-
-  def self.windows?
-    ((/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM) != nil)
-  end
-
-  def self.windows_32bit?
-    windows? && bits == 32
-  end
-
-  def self.windows_64bit?
-    windows? && bits == 64
-  end
-
-  def self.mac_osx?
-    ((/darwin/ =~ RUBY_PLATFORM) != nil)
-  end
-
-  def self.mac_osx_32bit?
-    mac_osx? && bits == 32
-  end
-
-  def self.mac_osx_64bit?
-    mac_osx? && bits == 64
-  end
-
-  def self.linux?
-    !windows? && !mac_osx?
-  end
-
-  def self.linux_32bit?
-    linux? && bits == 32 && x86?
-  end
-
-  def self.linux_64bit?
-    linux? && bits == 64 && x86?
-  end
-
-  def self.linux_aarch64?
-    linux? && bits == 64 && aarch64?
-  end
 
   def self.lib_name
     if windows_32bit?
@@ -102,7 +38,7 @@ module Librsync
     ]
 
     search_dirs.each do |search_dir|
-      path = File.join("#{search_dir}", lib_name)
+      path = File.expand_path(File.join(search_dir, lib_name))
       return path if File.exist? path
     end
 
@@ -118,4 +54,7 @@ module Librsync
 
   # rdiff delta
   extern 'int rs_rdiff_delta(char*, char*, char*)'
+
+  # basis_name, sig_name, block size
+  extern 'int rs_rdiff_sig(char*, char*, size_t)'
 end

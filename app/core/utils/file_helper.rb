@@ -1,3 +1,5 @@
+require_relative 'windows_long_path'
+
 module FileHelper
   # Lists all files in directory and returns their relative path
   def self.list_relative(dir)
@@ -14,6 +16,15 @@ module FileHelper
     all_files.map do |e|
       Pathname.new(e).relative_path_from(dir_path).to_s
     end
+  end
+
+  def self.get_dir_size(dir)
+    total_size = 0
+    Dir.glob(File.join(dir, '**', '*'), File::FNM_DOTMATCH) do |file|
+      next if file == '.' || file == '..'
+      total_size += File.size(WindowsLongPath.fix(file)) if File.file?(WindowsLongPath.fix(file))
+    end
+    total_size
   end
 
   def self.only_zip_file_in_directory(dir)

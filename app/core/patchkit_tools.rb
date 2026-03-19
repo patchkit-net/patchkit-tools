@@ -1,5 +1,6 @@
 require 'optparse'
 require 'ostruct'
+require 'thread'
 require_relative 'utils/file_helper.rb'
 require_relative 'patchkit_error.rb'
 
@@ -20,6 +21,16 @@ module PatchKitTools
       ::PatchKitAPI.api_url = "#{protocol}://#{tool.host}" if !tool.host.nil? && !tool.host.empty?
 
       trap("SIGINT") do
+        if PatchKitConfig.debug
+          Thread.list.each do |thread|
+            puts "Thread #{thread.object_id}:"
+            puts "  Status: #{thread.status}"
+            puts "  Alive: #{thread.alive?}"
+            puts "  Priority: #{thread.priority}"
+            puts "  Backtrace: #{thread.backtrace&.join("\n  ")}"
+          end
+        end
+
         if tool.respond_to? :release_global_lock!
           puts "Caught SIGINT, releasing global lock..."
           tool.release_global_lock!

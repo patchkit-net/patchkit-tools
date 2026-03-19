@@ -19,6 +19,7 @@ require_relative 'update_version.rb'
 require_relative 'upload_version.rb'
 require_relative 'core/model/app'
 require_relative 'core/utils/waiter'
+require_relative 'core/utils/windows_long_path'
 
 include PatchKitTools::Model
 
@@ -103,6 +104,11 @@ module PatchKitTools
         opts.on("--import-copy-changelog", Integer, 'copy changelog from source version') do
           @import_copy_changelog = true
         end
+
+        # option to exit (skip) on processing. It will still be processed on the server, just not waiting for it here
+        opts.on("--skip-processing", "skip processing stage") do
+          @skip_processing = true
+        end
       end
     end
 
@@ -112,9 +118,12 @@ module PatchKitTools
 
       acquire_app_processing_global_lock!(app)
 
-      if app.is_channel
-        raise_error "Cannot upload directly to a channel. You can upload the content to a group or use "\
-                    "channel-make-version to create a new channel version."
+      if app.is_channel && @mode != 'diff_fast'
+        allowed_direct = app.respond_to?(:allow_channel_direct_publish) && app.allow_channel_direct_publish
+        unless allowed_direct
+          raise_error "Cannot upload directly to a channel. You can upload the content to a group, use "\
+                      "channel-make-version to create a new channel version, or use diff_fast mode."
+        end
       end
 
       validate_source_version! unless mode_files?
@@ -142,15 +151,23 @@ module PatchKitTools
 
       update_draft_version_details!
 
+      if @publish
+        puts "This version will be published as soon as it gets processed."
+        draft_version.publish_when_processed = true
+        draft_version.save!
+      end
+
       if mode_files?
         upload_files!
       else
         import_version!(app_secret: @import_app_secret, vid: @import_version_vid)
       end
 
-      if @publish
-        publish_version!
-        puts "This version will be published as soon as it gets processed."
+      if @skip_processing
+        # print explanation message why it's being skipped (because of --skip-processing flag)
+        # Processing is still done on the server, just not waited for here
+        puts "Processing stage skipped. Version will be processed in the background."
+        return
       end
 
       puts "Everything here is done! You're now safe to quit (CTRL+C) or close your console window."
@@ -214,7 +231,7 @@ module PatchKitTools
       @changelog ||= if mode_import? && @import_copy_changelog
                        source_version.changelog
                      elsif !@changelog_file.nil?
-                       File.read(@changelog_file)
+                       File.read(WindowsLongPath.fix(@changelog_file))
                      else
                        @changelog
                      end
@@ -261,7 +278,7 @@ module PatchKitTools
 
         download_version_signatures_tool.execute
 
-        diff_package = "#{temp_dir}/#{@secret}_diff_#{previous_version_id}.zi_"
+        diff_package = "#{temp_dir}/#{@secret}_diff_#{previous_version_id}.diff"
         diff_summary = "#{temp_dir}/#{@secret}_diff_summary_#{previous_version_id}.txt"
 
         diff_version_tool = PatchKitTools::DiffVersionTool.new
@@ -269,8 +286,23 @@ module PatchKitTools
         diff_version_tool.files = @files
         diff_version_tool.diff = diff_package
         diff_version_tool.diff_summary = diff_summary
+        if @mode == 'diff_fast'
+          diff_version_tool.previous_files_hashes = previous_files_hashes(previous_version_id)
+          diff_version_tool.algorithm = 'pack1'
+          diff_version_tool.delta_algorithm = app.diff_algorithm&.gsub('rdiff', 'librsync')
+          diff_version_tool.pack1_key = self.draft_version.fetch_pack1_key
+        end
 
         diff_version_tool.execute
+
+        if @mode == 'diff_fast'
+          files = [diff_package, "#{diff_package}.meta"]
+          files.each do |file|
+            raise "File #{file} doesn't exist" unless File.exist?(WindowsLongPath.fix(file))
+          end
+
+          diff_package = files.join(',')
+        end
 
         upload_version_content_tool = PatchKitTools::UploadVersionTool.new
         upload_version_content_tool.secret = @secret
@@ -280,6 +312,7 @@ module PatchKitTools
         upload_version_content_tool.file = diff_package
         upload_version_content_tool.diff_summary = diff_summary
         upload_version_content_tool.wait_for_job = false
+        upload_version_content_tool.sha1 = diff_version_tool.sha1
 
         upload_version_content_tool.execute
         @processing_job_guid = upload_version_content_tool.processing_job_guid
@@ -288,11 +321,6 @@ module PatchKitTools
 
     def app
       @app ||= App.find_by_secret!(@secret)
-    end
-
-    def publish_version!
-      draft_version.publish_when_processed = true
-      draft_version.save!
     end
 
     def draft_version
@@ -305,6 +333,13 @@ module PatchKitTools
 
     def draft_version_id
       draft_version.id
+    end
+
+    def previous_files_hashes(version_id)
+      version = Version.find_by_id!(app, version_id)
+      content_summary = version.content_summary
+
+      content_summary[:files].map { |f| [f[:path], f[:hash]] }.to_h
     end
 
     def validate_processed!
@@ -353,7 +388,7 @@ module PatchKitTools
 
           if !@files.end_with?('.apk')
 
-            if File.directory?(@files)
+            if File.directory?(WindowsLongPath.fix(@files))
               apks = Dir["#{@files}/*.apk"]
               if apks.size == 1
                 @files = apks[0]
@@ -365,7 +400,7 @@ module PatchKitTools
             else
               raise_error "Given file #{@files} is not an apk file."
             end
-          elsif !File.exist?(@files)
+          elsif !File.exist?(WindowsLongPath.fix(@files))
             raise_error "Given file #{@files} doesn't exist"
           end
         else
@@ -409,7 +444,7 @@ module PatchKitTools
         case @mode.to_s.strip
         when 'content'
           upload_version_content
-        when 'diff'
+        when 'diff', 'diff_fast'
           upload_version_diff
         else
           raise_error "Unknown upload mode: #{@mode}"
