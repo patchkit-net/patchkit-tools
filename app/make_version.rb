@@ -119,8 +119,11 @@ module PatchKitTools
       acquire_app_processing_global_lock!(app)
 
       if app.is_channel && @mode != 'diff_fast'
-        raise_error "Cannot upload directly to a channel. You can upload the content to a group, use "\
-                    "channel-make-version to create a new channel version, or use diff_fast mode."
+        allowed_direct = app.respond_to?(:allow_channel_direct_publish) && app.allow_channel_direct_publish
+        unless allowed_direct
+          raise_error "Cannot upload directly to a channel. You can upload the content to a group, use "\
+                      "channel-make-version to create a new channel version, or use diff_fast mode."
+        end
       end
 
       validate_source_version! unless mode_files?
